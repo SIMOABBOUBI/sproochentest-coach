@@ -623,6 +623,12 @@ audio{width:100%;margin-top:10px}
 @keyframes tick{0%,100%{opacity:1}50%{opacity:.55}}
 .photo-wrap{position:relative;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line)}
 .photo-wrap img{width:100%;background:var(--surface-2)}
+.photo-wrap.sm{margin-bottom:12px}
+.photo-wrap.sm img{max-height:32vh;object-fit:cover}
+.frame{border:1.5px dashed var(--line-strong,var(--line));border-radius:14px;padding:12px 14px;margin:10px 0;background:var(--surface-2)}
+.frame .fr-h{font-size:.74rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.frame .lux{display:block;margin:3px 0;font-weight:600}
+.gap{display:inline-block;min-width:3.2em;border-bottom:2px solid currentColor;margin:0 .15em}
 .checkgrid{display:grid;gap:8px}
 .checkgrid label{display:flex;align-items:center;gap:11px;padding:12px 14px;border-radius:13px;
   background:var(--surface-2);border:1px solid var(--line);font-size:.88rem;font-weight:650;cursor:pointer;
@@ -732,6 +738,9 @@ table.conj td.p{color:var(--muted);width:45%;font-size:.85rem}
         <div class="sec-h"><h2>Reprendre en 2 minutes</h2></div>
         <div class="qgrid" id="homeQuick"></div>
 
+        <div class="sec-h"><h2>Mes points faibles</h2></div>
+        <div class="card" id="homeWeak"></div>
+
         <div class="sec-h"><h2>Mon plan du jour</h2><span class="more" data-act="plan-info">réglages</span></div>
         <div id="homePlan"></div>
 
@@ -750,7 +759,7 @@ table.conj td.p{color:var(--muted);width:45%;font-size:.85rem}
         <div class="sec-h"><h2>Sessions recommandées</h2></div>
         <div id="learnModes"></div>
 
-        <div class="sec-h"><h2>Mes 25 thèmes de vocabulaire</h2></div>
+        <div class="sec-h"><h2>Mes thèmes de vocabulaire</h2></div>
         <div class="seg" id="deckSort" style="margin-bottom:12px">
           <button class="active" data-sort="prog">Par progression</button>
           <button data-sort="alpha">A → Z</button>
@@ -1049,6 +1058,17 @@ const DECKS = {
     ["Donneschdeg","jeudi","Thursday"],["Freideg","vendredi","Friday"],
     ["Samschdeg","samedi","Saturday"],["Sonndeg","dimanche","Sunday"],
     ["haut","aujourd'hui","today"],["muer","demain","tomorrow"],["gëschter","hier","yesterday"]
+  ],
+  "🖼️ Bild beschreiwen": [
+    ["Op der Foto gesinn ech …","Sur la photo je vois …","In the photo I see …"],["Et gëtt …","il y a …","there is / are …"],
+    ["an der Mëtt","au milieu","in the middle"],["am Hannergrond","à l'arrière-plan","in the background"],
+    ["am Virdergrond","au premier plan","in the foreground"],["riets","à droite","on the right"],
+    ["lénks","à gauche","on the left"],["dobaussen","dehors","outside"],["d'Leit","les gens","people"],
+    ["jonk","jeune","young"],["al","vieux / âgé","old"],["frou","content","happy"],
+    ["laang Hoer","cheveux longs","long hair"],["kuerz Hoer","cheveux courts","short hair"],
+    ["… huet … un","… porte … (un vêtement)","… is wearing …"],["ongeféier … Joer al","environ … ans","about … years old"],
+    ["vläicht","peut-être","maybe"],["Ech mengen, …","je pense que …","I think …"],
+    ["Ech géif soen, …","je dirais que …","I would say …"],["Si gesi frou aus","ils ont l'air contents","they look happy"]
   ]
 };
 const PHOTOS=[
@@ -1357,6 +1377,70 @@ const PICTURE = [
    <b>3.</b> Accorde bien l'adjectif au nom — prononce le <b>-e</b> final : « e blo<b>e</b> Pullover ».<br>
    <b>4.</b> Parle jusqu'à ce que l'examinateur t'arrête (4–5 minutes).</p>`}
 ];
+/* ===== production guidée : passer de « je comprends » à « je réponds » ===== */
+// verbe de la question (forme « Dir ») → forme « ech » de la réponse
+const DIR2ECH = {
+  maacht:"maachen", gitt:"ginn", wunnt:"wunnen", schafft:"schaffen", kuckt:"kucken", iesst:"iessen",
+  drénkt:"drénken", fuert:"fueren", kacht:"kachen", botzt:"botzen", léiert:"léieren", schwätzt:"schwätzen",
+  hutt:"hunn", kaaft:"kafen", schenkt:"schenken", kritt:"kréien", stitt:"stinn", schloft:"schlofen",
+  dréit:"droen", bleift:"bleiwen", informéiert:"informéieren", benotzt:"benotzen", waart:"war"
+};
+// squelette de réponse par type de question : {v} = le verbe repris à la forme « ech »
+const FRAMES = {
+  "GÄR":["Jo, ech {v} gär …, besonnesch …","Nee, ech {v} net gär …, well …"],
+  "LÉIWER":["Ech {v} léiwer …, well …","… gefält mir besser, awer heiansdo …"],
+  "SÄIT / ZANTER":["Ech {v} zanter … (2015 / dräi Joer).","Zanter … {v} ech …, an et gefält mir gutt."],
+  "WÉI OFT / DACKS":["Ech {v} … (eemol d'Woch / all Dag / heiansdo).","Meeschtens {v} ech … (um Samschdeg / owes)."],
+  "WÉI LAANG":["Ech {v} ongeféier … (eng hallef Stonn / zwou Wochen).","Normalerweis …, awer heiansdo méi laang."],
+  "WAT FIR":["Ech {v} … (en / eng / e …), well …","Am léifsten …, an zwar …"],
+  "WÉI":["Ech {v} … (mam Vëlo / gutt / um Internet).","…, allerdéngs …"],
+  "":["Ech {v} …","…, an zwar … / …, well …"]
+};
+// phrases d'exemple en plus, pour des mots fragiles absents des réponses modèles
+const CTX_EXTRA = [
+  ["Um Dënschdeg ginn ech an de Fitness.","Le mardi, je vais à la salle de sport."],
+  ["Um Donneschdeg kachen ech fir meng Famill.","Le jeudi, je cuisine pour ma famille."],
+  ["Um Sonndeg besiche mir meng Elteren.","Le dimanche, nous rendons visite à mes parents."],
+  ["Mir kënnen um Weekend zesumme kachen.","Nous pouvons cuisiner ensemble le week-end."],
+  ["Wat wëllt Dir mir soen ?","Que voulez-vous me dire ?"],
+  ["Ech ginn um Samschdeg Uebst kafen.","Samedi, je vais acheter des fruits."],
+  ["Meng Kanner spillen am Gaart.","Mes enfants jouent dans le jardin."],
+  ["D'Kanner spillen an hirem Zëmmer.","Les enfants jouent dans leur chambre."],
+  ["Owes sëtze mir an der Stuff a kucken Tëlee.","Le soir, nous sommes au salon et regardons la télé."],
+  ["Mäin Hobby ass Musek lauschteren.","Mon loisir, c'est écouter de la musique."],
+  ["An der Nuecht schlofen ech aacht Stonnen.","La nuit, je dors huit heures."],
+  ["Pardon, wéivill kascht dat ?","Pardon, combien ça coûte ?"],
+  ["D'Kand ass fënnef Joer al.","L'enfant a cinq ans."],
+  ["Ech schaffen ongeféier aacht Stonnen den Dag.","Je travaille environ huit heures par jour."],
+  ["Meeschtens iessen ech mëttes eng Zalot.","La plupart du temps, je mange une salade à midi."],
+  ["Natierlech hëllefen ech dir gär.","Bien sûr que je t'aide volontiers."],
+  ["Ech iesse gär Uebst, besonnesch Äppel.","J'aime les fruits, surtout les pommes."],
+  ["Fir d'éischt drénken ech e Kaffi, dann ginn ech schaffen.","D'abord je bois un café, puis je vais travailler."],
+  ["Ech schwätzen e bëssen Däitsch.","Je parle un peu allemand."],
+  ["Ech iesse gär Uebst, ausser Bananen.","J'aime les fruits, sauf les bananes."],
+  ["Ech kafen nëmmen e bëssen Uebst.","J'achète seulement un peu de fruits."],
+  ["Ech botzen d'Wunneng reegelméisseg.","Je nettoie l'appartement régulièrement."],
+  ["Mir danzen gär op Fester.","Nous aimons danser aux fêtes."],
+  ["Ech lafen dräimol d'Woch.","Je cours trois fois par semaine."],
+  ["Ech muss nach d'Wunneng oprëmen.","Je dois encore ranger l'appartement."],
+  ["Meng Frëndin wunnt zu Esch.","Mon amie habite à Esch."],
+  ["Ech schenke menger Mamm Blummen.","J'offre des fleurs à ma mère."],
+  ["D'Haus ass wäiss.","La maison est blanche."],
+  ["Den Himmel ass blo.","Le ciel est bleu."]
+];
+// description d'image guidée
+const PIC_ASK = {
+  wien:["Wien gesäis du op der Foto ?","Qui vois-tu ?"], wou:["Wou sinn d'Leit ?","Où sont les gens ?"],
+  weini:["Wéini ass et ? Wéi ass d'Wieder ?","Quand ? Quel temps fait-il ?"], act:["Wat maachen d'Leit ?","Que font les gens ?"],
+  obj:["Wat gesäis du nach ?","Que vois-tu d'autre ?"], sit:["Wien ass op der Foto, a wou ?","Qui et où ?"],
+  pers:["Beschreif eng Persoun.","Décris une personne."]
+};
+const PIC_FRAMES = [
+  ["A · Qui / où / quand","Op der Foto gesinn ech … . Ech mengen, si sinn … (an der Stad / doheem / op der Plage). Et ass … (am Summer / moies), d'Wieder ass …"],
+  ["B · Activités","D'Leit … (trëppelen / iessen / spillen). E puer Leit …, anerer …"],
+  ["C · Objets","Am Hannergrond gesinn ech … . Lénks / riets ass … . Et gëtt …"],
+  ["D · Une personne","An der Mëtt gesinn ech … . Hien / si ass ongeféier … Joer al. Hien / si huet … Hoer an huet e(n) / eng … un."]
+];
 /* ============================================================================
    SPROOCHENTEST A2 — COACH v3
    Moteur : état, révision espacée (Leitner), XP / niveaux / série, effets.
@@ -1410,6 +1494,7 @@ const DEFAULT_STATE = () => ({
   mocks: [],                     // {date, score, topic}
   plan: { start: null, done: {} },
   records: {},
+  pic: {},                       // id photo -> {done, self, date}
   tipIdx: 0,
   lastSeen: null
 });
@@ -1768,11 +1853,14 @@ function dayPlan(idx) {
   } else if (phase === 1) {
     add('new', '🃏', `Découvrir « ${theme} »`, 'Nouveaux mots en flashcards', () => startPreset('new', theme));
     add('srs', '♻️', 'Révision du jour', 'Les cartes dues aujourd\'hui', () => startPreset('srs'));
-    add('recog', '🕵️', 'Reconnaître la question', 'Le réflexe n°1 de l\'examen', () => startPreset('recog'));
+    add('answer', '🪜', 'Construire mes réponses', 'Reprendre le verbe + squelette, à voix haute', () => startPreset('answer'));
+    if (idx % 2) add('recog', '🕵️', 'Reconnaître la question', 'Le réflexe n°1 de l\'examen', () => startPreset('recog'));
+    if (idx % 3 === 1) add('img', '🖼️', 'Image pas à pas', 'Décrire une photo, guidé', () => startPreset('pic'));
     if (idx % 4 === 0) add('gram', '📐', 'Un point de grammaire', 'Fiche + exercices', () => startPreset('gram'));
   } else if (phase === 2) {
     add('srs', '♻️', 'Révision du jour', 'Les cartes dues aujourd\'hui', () => startPreset('srs'));
     add('typed', '⌨️', 'Rappel actif', 'Quiz en saisie — plus exigeant', () => startPreset('typed'));
+    add('build', '🧩', 'Faire des phrases', 'Ordre des mots, verbe en 2ᵉ position', () => startPreset('build'));
     add('oral', '🎤', `Oral : « ${theme.replace(/^[^\s]+\s/, '')} »`, 'Réponds à voix haute puis compare', () => { showView('speak'); setSpeak('oral'); });
     if (idx % 3 === 0) add('img', '🖼️', 'Décrire une image', 'Méthode A-B-C, 5 min', () => { showView('speak'); setSpeak('photo'); });
   } else {
@@ -1832,6 +1920,80 @@ const BUILD_POOL = (() => {
   return uniqBy(out, x => x.s);
 })();
 
+/* ---------- répondre : reprendre le verbe de la question ---------- */
+function qTypeOf(q) {
+  const l = q.toLowerCase();
+  if (/léiwer/.test(l)) return 'LÉIWER';
+  if (/säit wéini|zanter/.test(l)) return 'SÄIT / ZANTER';
+  if (/wéi (oft|dacks)/.test(l)) return 'WÉI OFT / DACKS';
+  if (/wéi laang/.test(l)) return 'WÉI LAANG';
+  if (/wat fir|wéi eng/.test(l)) return 'WAT FIR';
+  if (/(^|\s)gär(\s|\?|$)/.test(l)) return 'GÄR';
+  if (/^wéi\s/.test(l)) return 'WÉI';
+  return '';
+}
+function answerInfo(q) {
+  const m = q.match(/(\S+) Dir(?![\p{L}])/u), dir = m ? m[1].toLowerCase() : '';
+  return { q, dir, ech: DIR2ECH[dir] || '', type: qTypeOf(q) };
+}
+const ANSWER_POOL = (() => {
+  const out = [];
+  const add = (q, a, fr) => { const it = answerInfo(q); if (it.ech) out.push(Object.assign(it, { a: a || '', fr: fr || '' })); };
+  ORAL_KEYS.forEach(t => ORAL[t].forEach(o => add(o.q, o.a, o.fr)));
+  QTYPES.forEach(t => add(t.q, t.a, t.qfr));
+  QRECOG.forEach(([q]) => add(q));
+  return uniqBy(out, x => x.q);   // la première occurrence est celle qui a une réponse modèle
+})();
+function frameHtml(it) {
+  const v = it.ech || '…';
+  return `<div class="frame"><div class="fr-h">🧱 Squelette${it.type ? ' « ' + esc(it.type) + ' »' : ''} — complète avec TA vie</div>
+    ${(FRAMES[it.type] || FRAMES['']).map(f => `<span class="lux">${esc(f.replace(/\{v\}/g, v))}</span>`).join('')}
+    <div class="r" style="margin-top:6px">Recette A2 : <b>reprends le verbe</b> de la question à la forme « ech » + <b>1 détail</b> + <b>1 connecteur</b> (well, awer, an zwar, meeschtens…).</div></div>`;
+}
+
+/* ---------- mots en contexte : phrases d'examen contenant le mot ---------- */
+const CTX_SENT = (() => {
+  const out = [];
+  const split = (txt, fr) => txt.split(/(?<=[.!?])\s+/).forEach(x => { x = x.trim(); if (x.split(' ').length >= 4) out.push({ s: x, fr }); });
+  ORAL_KEYS.forEach(t => ORAL[t].forEach(o => split(o.a, '')));
+  QTYPES.forEach(q => split(q.a, q.afr));
+  PHOTOS.forEach(p => p.model.forEach(m => split(m[1], '')));
+  CTX_EXTRA.forEach(([x, fr]) => out.push({ s: x, fr }));
+  return uniqBy(out, x => x.s);
+})();
+const reEsc = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// le cœur du mot : sans article ni parenthèse ; chaque variante « a / b » compte
+const coreForms = lux => lux.replace(/\(.*?\)|…/g, '').split('/')
+  .map(x => x.trim().replace(/^(d'|de |den |dem |eng |en |e )/i, '').replace(/[,!?.]+$/, '').trim()).filter(x => x.length >= 2);
+const CTX_OF = {};     // lux -> [{s, fr, hit, at}]
+ALL_WORDS.forEach(([lux]) => {
+  const hits = [];
+  coreForms(lux).forEach(f => {
+    const re = new RegExp('(^|[^\\p{L}])(' + reEsc(f) + ')(?![\\p{L}])', 'iu');
+    CTX_SENT.forEach(c => { const m = c.s.match(re); if (m) hits.push({ s: c.s, fr: c.fr, hit: m[2], at: m.index + m[1].length }); });
+  });
+  if (hits.length) CTX_OF[lux] = uniqBy(hits, h => h.s);
+});
+/* fragilité d'un mot : taux d'oubli lissé, + bonus s'il vient de retomber en boîte basse */
+const fragility = lux => { const r = S.srs[lux]; return r ? (r.ko + 1) / (r.seen + 2) + (r.b <= 1 ? .3 : 0) : 0; };
+const weakFirst = ws => shuffle(ws).sort((a, b) => fragility(b[0]) - fragility(a[0]));
+
+/* ---------- ordre des mots : les petits mots restent collés au mot suivant ---------- */
+const GLUE = new Set(["d'", 'de', 'den', 'dem', 'der', 'e', 'en', 'eng', 'engem', 'enger', 'an', 'am', 'um', 'op', 'mam', 'mat',
+  'zu', 'bei', 'no', 'vun', 'fir', 'mäi', 'meng', 'mäin', 'menger', 'mengem', 'all', 'ze']);
+function chunks(sent) {
+  const out = []; let buf = [];
+  sent.split(' ').forEach(w => { buf.push(w); if (!GLUE.has(w.toLowerCase())) { out.push(buf.join(' ')); buf = []; } });
+  if (buf.length) out.push(buf.join(' '));
+  return out;
+}
+// tant que l'ordre des mots n'est pas acquis, on reste sur des phrases courtes
+const buildPool = () => {
+  const easy = accN('build') < 10 || accOf('build') < .6;
+  const p = easy ? BUILD_POOL.filter(x => chunks(x.s).length <= 5) : BUILD_POOL;
+  return p.length ? p : BUILD_POOL;
+};
+
 /* ---------- construction de la file d'exercices ---------- */
 const SIZE_BY_MIN = { 5: 8, 10: 14, 15: 20, 20: 26 };
 const sessionSize = () => SIZE_BY_MIN[S.profile.minutes] || 14;
@@ -1854,30 +2016,73 @@ function conjStep() {
     .filter(f => f !== right);
   return { type: 'conj', name, person: PERS[p], right, opts: shuffle(uniqBy([right, ...wrong].slice(0, 4), x => x)) };
 }
-const buildStep = () => ({ type: 'build', item: pick(BUILD_POOL) });
+const buildStep = () => ({ type: 'build', item: pick(buildPool()) });
+function answerStep(it) {
+  const o = it || pick(ANSWER_POOL), right = `Ech ${o.ech} …`;
+  return { type: 'answer', o, right, opts: shuffle(uniqBy([right, `Ech ${o.dir} …`, `Dir ${o.dir} …`], x => x)) };
+}
+function clozeStep(w) {
+  const c = pick(CTX_OF[w[0]]);
+  const cap = c.hit[0] !== c.hit[0].toLowerCase();
+  const fix = f => cap ? f[0].toUpperCase() + f.slice(1) : f;
+  const others = x => x[0] !== w[0] && coreForms(x[0]).length;
+  const same = ALL_WORDS.filter(x => others(x) && x[3] === w[3]);
+  const pool = same.length >= 3 ? same : ALL_WORDS.filter(others);
+  const distract = uniqBy(shuffle(pool).map(x => fix(coreForms(x[0])[0])), x => x.toLowerCase())
+    .filter(x => x.toLowerCase() !== c.hit.toLowerCase()).slice(0, 3);
+  return { type: 'cloze', w, c, right: c.hit, opts: shuffle([c.hit, ...distract]) };
+}
+function ctxStep() {
+  const cand = weakFirst(ALL_WORDS.filter(x => CTX_OF[x[0]] && isSeen(x[0]))).slice(0, 12);
+  return cand.length ? clozeStep(pick(cand)) : null;
+}
+const PIC_KEY = l => /^WIEN/.test(l) ? 'wien' : /^WOU/.test(l) ? 'wou' : /^WÉINI/.test(l) ? 'weini'
+  : /^WAT maache|^B /.test(l) ? 'act' : /^WAT gesäis/.test(l) ? 'obj' : /^A /.test(l) ? 'sit' : 'pers';
+const firstSentence = t => t.split(/(?<=[.!?])\s+/)[0];
+/* une photo pas à pas : une question par partie du modèle, puis description libre */
+function picSteps(pi) {
+  const p = PHOTOS[pi];
+  return p.model.map((m, mi) => {
+    const k = PIC_KEY(m[0]);
+    const compat = k === 'sit' ? ['sit', 'wien', 'wou'] : (k === 'wien' || k === 'wou') ? [k, 'sit'] : [k];
+    const right = firstSentence(m[1]);
+    const others = uniqBy(PHOTOS.filter((_, j) => j !== pi)
+      .flatMap(o => o.model.filter(x => compat.includes(PIC_KEY(x[0]))).map(x => firstSentence(x[1]))), x => x)
+      .filter(x => x !== right);
+    return { type: 'picq', pi, mi, k, right, full: m[1], opts: shuffle([right, ...shuffle(others).slice(0, 2)]) };
+  }).concat([{ type: 'picsay', pi }]);
+}
+const picStep = () => pick(picSteps(rnd(PHOTOS.length)).filter(x => x.type === 'picq'));
 function oralStep() {
   const t = pick(ORAL_KEYS), i = rnd(ORAL[t].length);
   return { type: 'oral', topic: t, i, item: ORAL[t][i] };
 }
 
 function buildQueue(preset, arg) {
-  const due = shuffle(dueWords()), fresh = shuffle(newWords());
+  const due = weakFirst(dueWords()), fresh = shuffle(newWords());
   let steps = [];
   const N = sessionSize();
 
   if (preset === 'daily') {
     const nDue = Math.min(due.length, Math.round(N * .45));
-    const nNew = Math.min(fresh.length, Math.max(2, Math.round(N * .25)));
+    // gros retard de révisions : on vide le stock avant d'ajouter du neuf
+    const backlog = due.length > N * 2;
+    const nNew = backlog ? 0 : Math.min(fresh.length, Math.max(2, Math.round(N * .25)));
     steps = due.slice(0, nDue).map(reviewStep)
       .concat(fresh.slice(0, nNew).map(w => ({ type: 'card', w })));
     const extras = [];
-    extras.push(recogStep(), recogStep());
+    // production : comprendre ne suffit pas, chaque session fait répondre et construire
+    extras.push(recogStep(), answerStep(), answerStep());
+    const ctx = ctxStep(); if (ctx) extras.push(ctx);
     extras.push(Math.random() < .5 ? gramStep() : conjStep());
     if (BUILD_POOL.length) extras.push(buildStep());
+    extras.push(picStep());
     if (steps.length < N) extras.push(oralStep());
     steps = steps.concat(extras);
-    // si le vocabulaire est épuisé, on complète avec de la révision anticipée
+    const moreDue = due.slice(nDue);
+    // si le vocabulaire est épuisé, on complète avec les cartes dues restantes puis de la révision anticipée
     while (steps.length < N) {
+      if (moreDue.length) { steps.push(reviewStep(moreDue.shift())); continue; }
       const seen = ALL_WORDS.filter(w => isSeen(w[0]));
       if (!seen.length) break;
       steps.push(reviewStep(pick(seen)));
@@ -1908,7 +2113,14 @@ function buildQueue(preset, arg) {
   else if (preset === 'recog') steps = Array.from({ length: 10 }, recogStep);
   else if (preset === 'gram') steps = shuffle(GEX_KEYS.flatMap(c => GEX[c].map(item => ({ type: 'gram', cat: c, item })))).slice(0, 10);
   else if (preset === 'conj') steps = Array.from({ length: 10 }, conjStep);
-  else if (preset === 'build') steps = shuffle(BUILD_POOL).slice(0, 8).map(item => ({ type: 'build', item }));
+  else if (preset === 'build') steps = shuffle(buildPool()).slice(0, 8).map(item => ({ type: 'build', item }));
+  else if (preset === 'answer') steps = shuffle(ANSWER_POOL).slice(0, 8).map(o => answerStep(o));
+  else if (preset === 'context') {
+    const seen = weakFirst(ALL_WORDS.filter(x => CTX_OF[x[0]] && isSeen(x[0])));
+    const pool = seen.length >= 5 ? seen : shuffle(ALL_WORDS.filter(x => CTX_OF[x[0]]));
+    steps = pool.slice(0, 10).map(clozeStep);
+  }
+  else if (preset === 'pic') steps = picSteps(arg != null && arg !== '' ? +arg : rnd(PHOTOS.length));
   else if (preset === 'oral') steps = Array.from({ length: 5 }, oralStep);
   else if (preset === 'express') {
     const pool = due.length ? due : ALL_WORDS.filter(w => isSeen(w[0]));
@@ -1916,8 +2128,8 @@ function buildQueue(preset, arg) {
     if (!steps.length) steps = shuffle(ALL_WORDS).slice(0, 6).map(w => ({ type: 'card', w }));
   }
   else if (preset === 'weak') {
-    const weak = ALL_WORDS.filter(w => { const r = S.srs[w[0]]; return r && r.b <= 2; });
-    steps = shuffle(weak).slice(0, N).map(reviewStep);
+    const weak = weakFirst(ALL_WORDS.filter(w => { const r = S.srs[w[0]]; return r && (r.b <= 2 || r.ko >= 2); }));
+    steps = weak.slice(0, N).map(w => CTX_OF[w[0]] && Math.random() < .4 ? clozeStep(w) : reviewStep(w));
     if (!steps.length) steps = shuffle(newWords()).slice(0, 8).map(w => ({ type: 'card', w }));
   }
   return steps.filter(Boolean);
@@ -1945,7 +2157,8 @@ const PRESET_LABEL = {
   daily: 'Session du jour', srs: 'Révision espacée', new: 'Nouveaux mots', deck: 'Thème',
   quiz: 'Quiz éclair', typed: 'Rappel actif', listen: 'Compréhension orale', recog: 'Types de questions',
   gram: 'Grammaire', conj: 'Conjugaison', build: 'Ordre des mots', oral: 'Entraînement oral',
-  express: 'Révision express', weak: 'Mes mots fragiles'
+  express: 'Révision express', weak: 'Mes mots fragiles',
+  answer: 'Construire ma réponse', context: 'Mots en contexte', pic: 'Image pas à pas'
 };
 
 /* ---------- cycle de vie ---------- */
@@ -2008,7 +2221,8 @@ function renderStep() {
   const body = $('sxBody'); body.scrollTop = 0;
   ({
     card: rCard, mcq: rMcq, typed: rTyped, listen: rListen, recog: rRecog,
-    gram: rGram, conj: rConj, build: rBuild, oral: rOral
+    gram: rGram, conj: rConj, build: rBuild, oral: rOral,
+    answer: rAnswer, cloze: rCloze, picq: rPicq, picsay: rPicsay
   })[st.type](st, body);
 }
 const kicker = (label, extra) => `<div class="sx-kicker"><span class="k-dot"></span>${esc(label)}${extra ? ' · ' + extra : ''}</div>`;
@@ -2127,7 +2341,7 @@ function rListen(st, body) {
   body.innerHTML = kicker('Écoute', 'que comprends-tu ?')
     + `<button class="listen-btn" id="sxPlay"><em>🔊</em><span>Touche pour écouter · rejoue autant que tu veux</span></button>
        <div class="opts">${opts.map((o, k) => `<button class="opt" data-k="${k}"><span class="kbd">${k + 1}</span><span>${esc(o[1])}</span></button>`).join('')}</div>`;
-  const play = () => { const b = $('sxPlay'); b.classList.add('playing'); speak(lux, .8); setTimeout(() => b.classList.remove('playing'), 1400); };
+  const play = () => { const b = $('sxPlay'); if (!b) return; b.classList.add('playing'); speak(lux, .8); setTimeout(() => b.classList.remove('playing'), 1400); };
   $('sxPlay').onclick = play; setTimeout(play, 380);
   foot(`<div class="r" style="text-align:center">Réécoute autant de fois que nécessaire</div>`);
   qsa('#sxBody .opt').forEach((b, k) => b.onclick = () => {
@@ -2194,13 +2408,15 @@ function rConj(st, body) {
 
 /* ---------- 8. remets la phrase dans l'ordre ---------- */
 function rBuild(st, body) {
-  const target = st.item.s.split(' ');
+  const target = chunks(st.item.s);
   const bank = shuffle(target.map((w, i) => ({ w, i })));
+  st.tries = st.tries || 0;
   body.innerHTML = kicker('Ordre des mots', 'le verbe en 2ᵉ position')
     + `<div class="sx-q" style="font-size:1.05rem;font-weight:700">${esc(st.item.fr)}
-        <span class="sub">Reconstitue la phrase en luxembourgeois</span></div>
+        <span class="sub">Reconstitue la phrase — les petits mots sont déjà collés à leur groupe</span></div>
        <div class="build-slot" id="slot"></div>
-       <div class="bank" id="bank">${bank.map((b, k) => `<button class="word" data-k="${k}">${esc(b.w)}</button>`).join('')}</div>`;
+       <div class="bank" id="bank">${bank.map((b, k) => `<button class="word" data-k="${k}">${esc(b.w)}</button>`).join('')}</div>
+       <div class="r" style="margin-top:12px">💡 Un premier bloc (sujet ou complément), puis tout de suite le <b>verbe</b>.</div>`;
   const chosen = [];
   const slot = $('slot');
   const paint = () => {
@@ -2222,9 +2438,22 @@ function rBuild(st, body) {
   });
   const check = () => {
     if (SX.answered) return;
-    const got = chosen.map(c => c.w).join(' ');
-    const good = got === st.item.s;
-    qsa('#slot .word').forEach((b, i) => b.classList.add(chosen[i].w === target[i] ? 'ok' : 'ko'));
+    const marks = chosen.map((c, i) => c.w === target[i]);
+    const good = marks.every(Boolean);
+    qsa('#slot .word').forEach((b, i) => b.classList.add(marks[i] ? 'ok' : 'ko'));
+    // premier essai raté : on garde le début correct et on laisse corriger la suite
+    if (!good && st.tries === 0) {
+      st.tries = 1;
+      const cut = marks.indexOf(false);
+      foot(`<div class="r" style="text-align:center">Presque ! Tout est bon avant le premier bloc rouge — corrige la suite.</div>`);
+      beep('no');
+      setTimeout(() => {
+        if (!SX || SX.answered || SX.steps[SX.i] !== st) return;
+        chosen.splice(cut).forEach(c => qsa('#bank .word')[c.k].classList.remove('used'));
+        paint(); refreshFoot();
+      }, 1400);
+      return;
+    }
     trackAcc('build', good);
     answered(good, good ? `<span class="lux">${esc(st.item.s)}</span>` : `La phrase correcte : <span class="lux">${esc(st.item.s)}</span>`,
       () => speak(st.item.s));
@@ -2251,6 +2480,7 @@ function rOral(st, body) {
        </div>
        <div id="oRecBox"></div>
        <div class="note">🗣️ <b>Réponds à voix haute d'abord</b>, en phrase complète. Ensuite seulement, compare avec le modèle.</div>
+       <details><summary>🧱 Bloqué·e ? Le squelette de réponse</summary><div class="dbody">${frameHtml(answerInfo(o.q))}</div></details>
        <details id="oModel"><summary>👀 Voir la réponse modèle</summary>
          <div class="dbody"><div class="answer"><span class="lux">${esc(o.a)}</span></div>
          <button class="btn soft sm" id="oSayA">🔊 Écouter le modèle</button></div></details>`;
@@ -2290,6 +2520,98 @@ function rOral(st, body) {
   });
 }
 
+/* ---------- 10. commencer sa réponse : « Dir maacht » → « Ech maachen » ---------- */
+function rAnswer(st, body) {
+  const o = st.o;
+  body.innerHTML = kicker('Construire ta réponse', 'reprendre le verbe de la question')
+    + `<div class="sx-q"><span class="lux">${esc(o.q)}</span>${o.fr ? `<span class="sub">${esc(o.fr)}</span>` : ''}</div>
+       <button class="btn soft sm" id="sxSay" style="margin-bottom:14px">🔊 Écouter</button>
+       <div class="r" style="margin-bottom:8px">Comment commences-tu ta réponse ?</div>
+       <div class="opts">${st.opts.map((x, k) => `<button class="opt" data-k="${k}"><span class="kbd">${k + 1}</span><span class="lux">${esc(x)}</span></button>`).join('')}</div>
+       <div id="ansMore"></div>`;
+  $('sxSay').onclick = () => speak(o.q); speak(o.q);
+  foot(`<div class="r" style="text-align:center">La question te donne déjà le verbe : il suffit de le passer à « ech »</div>`);
+  qsa('#sxBody .opt').forEach((b, k) => b.onclick = () => {
+    if (SX.answered) return;
+    const good = st.opts[k] === st.right;
+    qsa('#sxBody .opt').forEach((x, j) => { x.disabled = true; x.classList.add(st.opts[j] === st.right ? 'correct' : 'faded'); });
+    if (!good) b.classList.remove('faded'), b.classList.add('wrong');
+    trackAcc('answer', good);
+    $('ansMore').innerHTML = frameHtml(o)
+      + (o.a ? `<details><summary>👀 Exemple de réponse complète</summary><div class="dbody"><div class="answer"><span class="lux">${esc(o.a)}</span></div></div></details>` : '')
+      + `<div class="note">🗣️ <b>Dis ta propre réponse à voix haute</b> avec le squelette avant de continuer.</div>`;
+    answered(good, good ? `Dir <b class="lux">${esc(o.dir)}</b> → ech <b class="lux">${esc(o.ech)}</b>`
+      : `Dir <b>${esc(o.dir)}</b> devient ech <b>${esc(o.ech)}</b> — on ne répète pas la forme « Dir ».`, o.a ? () => speak(o.a) : null);
+  });
+}
+
+/* ---------- 11. mot en contexte ---------- */
+function rCloze(st, body) {
+  const { c, w } = st;
+  const before = c.s.slice(0, c.at), after = c.s.slice(c.at + c.hit.length);
+  body.innerHTML = kicker('Mot en contexte', esc(w[3]))
+    + `<div class="sx-q" style="font-size:1.15rem"><span class="lux">${esc(before)}<span class="gap">&nbsp;</span>${esc(after)}</span>
+        <span class="sub">Indice : ${esc(w[1])}</span></div>
+       <div class="opts">${st.opts.map((o, k) => `<button class="opt" data-k="${k}"><span class="kbd">${k + 1}</span><span class="lux">${esc(o)}</span></button>`).join('')}</div>`;
+  foot(`<div class="r" style="text-align:center">Quel mot complète la phrase ?</div>`);
+  qsa('#sxBody .opt').forEach((b, k) => b.onclick = () => {
+    if (SX.answered) return;
+    const good = st.opts[k] === st.right;
+    qsa('#sxBody .opt').forEach((x, j) => { x.disabled = true; x.classList.add(st.opts[j] === st.right ? 'correct' : 'faded'); });
+    if (!good) b.classList.remove('faded'), b.classList.add('wrong');
+    gradeWord(w[0], w[3], good ? 2 : 0); trackAcc('ctx', good);
+    answered(good, `<span class="lux">${esc(c.s)}</span>${c.fr ? `<br><span class="r">${esc(c.fr)}</span>` : ''}<br><span class="r">🗣️ Redis la phrase à voix haute.</span>`,
+      () => speak(c.s));
+  });
+}
+
+/* ---------- 12. image pas à pas ---------- */
+function rPicq(st, body) {
+  const p = PHOTOS[st.pi], [ask, askFr] = PIC_ASK[st.k];
+  body.innerHTML = kicker('Décrire une image', `${st.mi + 1}/${p.model.length} · ${esc(p.title)}`)
+    + `<div class="photo-wrap sm"><img src="${p.img}" alt="${esc(p.title)}"></div>
+       <div class="sx-q" style="font-size:1.1rem"><span class="lux">${esc(ask)}</span><span class="sub">${esc(askFr)} Quelle phrase décrit CETTE photo ?</span></div>
+       <div class="opts">${st.opts.map((o, k) => `<button class="opt" data-k="${k}"><span class="kbd">${k + 1}</span><span class="lux">${esc(o)}</span></button>`).join('')}</div>`;
+  speak(ask);
+  foot(`<div class="r" style="text-align:center">Regarde bien la photo avant de choisir</div>`);
+  qsa('#sxBody .opt').forEach((b, k) => b.onclick = () => {
+    if (SX.answered) return;
+    const good = st.opts[k] === st.right;
+    qsa('#sxBody .opt').forEach((x, j) => { x.disabled = true; x.classList.add(st.opts[j] === st.right ? 'correct' : 'faded'); });
+    if (!good) b.classList.remove('faded'), b.classList.add('wrong');
+    trackAcc('pic', good);
+    answered(good, `<span class="lux">${esc(st.full)}</span><br><span class="r">🗣️ Répète-la à voix haute en regardant la photo.</span>`, () => speak(st.full));
+  });
+}
+function rPicsay(st, body) {
+  const p = PHOTOS[st.pi];
+  body.innerHTML = kicker('À toi de parler', esc(p.title))
+    + `<div class="photo-wrap sm"><img src="${p.img}" alt="${esc(p.title)}"></div>
+       <div class="note">🗣️ Décris la photo <b>à voix haute</b> pendant 2 minutes, en suivant le squelette. Les phrases que tu viens de voir sont des briques : réutilise-les.</div>
+       <div class="frame"><div class="fr-h">🧱 Squelette A-B-C-D</div>
+         ${PIC_FRAMES.map(f => `<div style="margin:6px 0"><b style="font-size:.78rem;color:var(--muted)">${esc(f[0])}</b><span class="lux">${esc(f[1])}</span></div>`).join('')}</div>
+       ${canRecord() ? '<button class="btn soft sm" id="picRec" style="margin-bottom:10px">⏺ M\'enregistrer</button><div id="recBoxP"></div>' : ''}
+       <details><summary>👀 Description modèle complète</summary><div class="dbody">
+         ${p.model.map(m => `<div class="mini" style="margin-bottom:8px"><b style="font-size:.74rem;color:var(--muted)">${esc(m[0])}</b><br><span class="lux">${esc(m[1])}</span></div>`).join('')}
+         <button class="btn soft sm" id="picSayAll">🔊 Écouter le modèle</button></div></details>`;
+  const rb = $('picRec'); if (rb) rb.onclick = () => oralRecord(rb, 'P');
+  $('picSayAll').onclick = () => speak(p.model.map(m => m[1]).join(' '));
+  foot(`<div class="r" style="text-align:center;margin-bottom:10px">Comment t'en es-tu sorti·e ?</div>
+     <div class="grades">
+      <button class="grade g0" data-q="0"><em>😶</em>Bloqué·e</button>
+      <button class="grade g1" data-q="1"><em>🙂</em>Ça allait</button>
+      <button class="grade g2" data-q="2"><em>🤩</em>Fluide</button>
+     </div>`);
+  qsa('#sxFoot .grade').forEach(b => b.onclick = () => {
+    const q = +b.dataset.q;
+    S.pic[p.id] = { done: true, self: q, date: TODAY };
+    const gain = 15 + q * 5; SX.xp += gain; addXp(gain, true);
+    if (q === 2) { SX.ok++; SX.combo++; } else SX.combo = 0;
+    SX.bestCombo = Math.max(SX.bestCombo, SX.combo);
+    save(); buzz(10); beep('ok'); stopRec(); next();
+  });
+}
+
 /* ---------- correction commune ---------- */
 function answered(good, detailHtml, replay) {
   SX.answered = true;
@@ -2318,7 +2640,8 @@ function next() { if (!SX) return; SX.i++; renderStep(); }
 
 /* ---------- bilan de session ---------- */
 function endSession() {
-  const dur = Math.max(1, Math.round((Date.now() - SX.t0) / 60000));
+  // plafond à 1,5 min par exercice : une app restée ouverte en arrière-plan ne gonfle pas le compteur
+  const dur = clamp(Math.round((Date.now() - SX.t0) / 60000), 1, Math.ceil(SX.steps.length * 1.5));
   const total = SX.ok + SX.ko;
   const pct = total ? Math.round(SX.ok / total * 100) : 100;
   const wasGoalDone = goalDone(TODAY);
@@ -2484,6 +2807,13 @@ function renderHome() {
       <span class="qi">${q.i}</span><span class="qt"><b>${q.t}</b><small>${q.s}</small></span>
       ${q.badge ? `<span class="qbadge">${q.badge}</span>` : ''}</button>`).join('');
 
+  /* --- points faibles --- */
+  const weak = weakSpots();
+  $('homeWeak').innerHTML = weak.length ? weak.map(m => `<button class="mode" data-act="start" data-preset="${m.act}">
+      <span class="mi" style="background:rgba(239,51,64,.12)">${m.i}</span>
+      <span class="mt"><b>${esc(m.t)}</b><small>${esc(m.s)}</small></span><span class="mgo">›</span></button>`).join('')
+    : '<div class="pad r">Rien de bloquant pour l\'instant — continue la session du jour.</div>';
+
   /* --- plan du jour --- */
   if (!S.plan.start) {
     $('homePlan').innerHTML = `<div class="card pad">
@@ -2540,10 +2870,33 @@ function renderHome() {
     <div><b style="font-size:.96rem">${tt}</b><p class="lead" style="margin-top:3px">${tx}</p></div></div>`;
 }
 
+/* les axes à travailler en priorité, lus dans la progression réelle */
+function weakSpots() {
+  const out = [], pct = k => Math.round(accOf(k) * 100);
+  if (accN('answer') < 20 || accOf('answer') < .8)
+    out.push({ i: '🪜', t: 'Répondre aux questions', s: 'Tu comprends mais tu bloques pour répondre : reprends le verbe de la question + un squelette', act: 'answer' });
+  if (accN('build') < 10 || accOf('build') < .6)
+    out.push({ i: '🧩', t: 'Faire des phrases', s: accN('build') ? `Ordre des mots : ${pct('build')} % — le verbe en 2ᵉ position` : 'Jamais travaillé', act: 'build' });
+  const picDone = PHOTOS.filter(p => S.pic[p.id]?.done).length;
+  if (picDone < PHOTOS.length)
+    out.push({ i: '🖼️', t: 'Décrire une image', s: `${picDone}/${PHOTOS.length} photos travaillées — c'est la 2ᵉ partie de l'examen`, act: 'pic' });
+  const frag = weakFirst(ALL_WORDS.filter(w => (S.srs[w[0]]?.ko || 0) >= 2 || (S.srs[w[0]] && S.srs[w[0]].b <= 1))).slice(0, 6);
+  if (frag.length) out.push({ i: '🩹', t: 'Mots qui résistent', s: frag.map(w => w[0]).join(' · '), act: 'weak' });
+  const due = dueWords().length;
+  if (due > sessionSize() * 2)
+    out.push({ i: '♻️', t: `${due} cartes en retard`, s: 'La session du jour vide le stock avant d\'ajouter des mots nouveaux', act: 'srs' });
+  if (accN('gram') >= 4 && accOf('gram') < .7)
+    out.push({ i: '📐', t: 'Grammaire', s: `${pct('gram')} % de réussite — possessifs, prépositions, Perfekt`, act: 'gram' });
+  return out;
+}
+
 /* ------------------------------------------------------------- ENTRAÎNER */
 function renderLearn() {
   const due = dueWords().length, fresh = newWords().length, wd = weakestDeck();
   const modes = [
+    { p: 'answer', i: '🪜', bg: 'rgba(239,51,64,.12)', t: 'Construire ma réponse', s: 'Reprendre le verbe de la question + squelette : le pont entre comprendre et parler' },
+    { p: 'pic', i: '🖼️', bg: 'rgba(0,163,224,.12)', t: 'Image pas à pas', s: 'Qui · où · quand · activités · personne — guidé, puis à toi' },
+    { p: 'context', i: '🔎', bg: 'rgba(15,157,88,.13)', t: 'Mots en contexte', s: 'Tes mots fragiles dans de vraies phrases d\'examen' },
     { p: 'srs', i: '♻️', bg: 'rgba(0,163,224,.12)', t: 'Révision du jour', s: due ? `${due} ${plural(due, 'carte')} à revoir maintenant — le cœur de la méthode` : 'Aucune carte due : tu es à jour ✅', pill: due || null, off: !due },
     { p: 'new', i: '🃏', bg: 'rgba(239,51,64,.12)', t: 'Découvrir de nouveaux mots', s: fresh ? `Suggestion : « ${wd} » · ${fresh} mots encore inconnus` : 'Tous les mots ont été vus 🎉', off: !fresh },
     { p: 'quiz', i: '🎯', bg: 'rgba(240,160,32,.14)', t: 'Quiz éclair', s: '12 questions à choix multiple, dans les deux sens' },
@@ -2629,6 +2982,7 @@ function renderOral() {
         ${canRecord() ? `<button class="btn sm soft" data-rec="${i}">⏺ M'enregistrer</button>` : ''}
         <button class="btn sm soft" data-model="${i}">👀 Modèle</button>
       </div>
+      <details style="margin-top:10px"><summary>🧱 Squelette de réponse</summary><div class="dbody">${frameHtml(answerInfo(o.q))}</div></details>
       <div id="recBox${i}"></div>
       <div id="model${i}" hidden style="margin-top:10px">
         <div class="answer"><span class="lux">${esc(o.a)}</span></div>
@@ -2651,6 +3005,7 @@ function renderOral() {
   qsa('#oralList [data-rec]').forEach(b => b.onclick = () => oralRecord(b, +b.dataset.rec));
 }
 function markOral(i) {
+  if (!/^\d+$/.test(String(i))) return;
   const k = oralTopic + '|' + i;
   if (!S.oral[k]?.done) { S.oral[k] = Object.assign({ note: '' }, S.oral[k], { done: true }); addXp(5); save(); checkBadges(); }
 }
@@ -2679,7 +3034,7 @@ function picShow() {
   el.classList.toggle('warn', picT <= 60);
 }
 function renderPhoto() {
-  $('photoChips').innerHTML = PHOTOS.map((p, i) => `<button class="chip${i === curPhoto ? ' active' : ''}" data-p="${i}">${esc(p.title)}</button>`).join('');
+  $('photoChips').innerHTML = PHOTOS.map((p, i) => `<button class="chip${i === curPhoto ? ' active' : ''}" data-p="${i}">${S.pic[p.id]?.done ? '✅ ' : ''}${esc(p.title)}</button>`).join('');
   qsa('#photoChips .chip').forEach(b => b.onclick = () => { curPhoto = +b.dataset.p; renderPhoto(); });
   const p = PHOTOS[curPhoto];
   $('photoCard').innerHTML = `<div class="card" style="overflow:hidden">
@@ -2687,6 +3042,9 @@ function renderPhoto() {
     <div style="padding:16px">
       <b style="font-size:1.05rem">${esc(p.title)}</b><div class="r">${esc(p.fr)}</div>
       <div class="note">🗣️ <b>À toi.</b> Décris cette photo à voix haute avec la méthode A-B-C : qui · où · quand · activités · objets · une personne en détail. Vise 4 minutes.</div>
+      <button class="btn brand big" data-act="start" data-preset="pic" data-arg="${curPhoto}" style="margin-bottom:10px">🪜 Pas à pas (recommandé pour commencer)</button>
+      <details style="margin-bottom:10px"><summary>🧱 Squelette A-B-C-D</summary><div class="dbody">
+        ${PIC_FRAMES.map(f => `<div style="margin:6px 0"><b style="font-size:.78rem;color:var(--muted)">${esc(f[0])}</b><div class="lux">${esc(f[1])}</div></div>`).join('')}</div></details>
       <div class="row">
         <button class="btn primary" id="phReveal">📖 Voir le modèle</button>
         <button class="btn soft" id="phSpeak">🔊 Écouter</button>
@@ -2752,6 +3110,7 @@ function renderMock() {
         ${canRecord() ? '<button class="btn soft sm" id="mkRec">⏺ M\'enregistrer</button>' : ''}</div>
       <div id="recBoxM"></div>
       <div class="note">🗣️ Réponds à voix haute en phrase complète, <b>puis</b> révèle le modèle.</div>
+      <details><summary>🧱 Bloqué·e ? Le squelette</summary><div class="dbody">${frameHtml(answerInfo(o.q))}</div></details>
       <details><summary>Voir la réponse modèle</summary><div class="dbody">
         <div class="answer"><span class="lux">${esc(o.a)}</span></div><div class="r">${esc(o.fr)}</div></div></details>
       <button class="btn primary big" id="mkNext">${MK.step + 1 < MK.qs.length ? 'Question suivante ›' : 'Passer à la photo ›'}</button>
