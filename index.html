@@ -562,9 +562,9 @@ audio{width:100%;margin-top:10px}
 @keyframes fbIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .fb .fi{font-size:1.5rem;line-height:1;flex:0 0 auto}
 .fb .ft{min-width:0;font-size:.9rem}
-.fb .ft b{display:block;font-size:1rem;font-weight:850;margin-bottom:2px}
-.sx-foot.ok .fb .ft b{color:var(--good)}
-.sx-foot.no .fb .ft b{color:var(--bad)}
+.fb .ft>b:first-child{display:block;font-size:1rem;font-weight:850;margin-bottom:2px}
+.sx-foot.ok .fb .ft>b:first-child{color:var(--good)}
+.sx-foot.no .fb .ft>b:first-child{color:var(--bad)}
 .fb .xp{margin-left:auto;flex:0 0 auto;font-weight:850;color:var(--gold);font-size:.88rem}
 
 /* session summary */
@@ -694,6 +694,43 @@ table.conj td.p{color:var(--muted);width:45%;font-size:.85rem}
 .toast.out{animation:toastOut .3s var(--ease) forwards}
 @keyframes toastOut{to{opacity:0;transform:translateY(-8px) scale(.96)}}
 
+/* ============================================================
+   PHRASES — mémorisation & traduction
+   ============================================================ */
+.phr{background:var(--surface-2);border:1px solid var(--line);border-left:3px solid var(--lux-blue);
+  border-radius:12px;padding:12px 14px;margin:10px 0}
+.phr-lu{font-size:1.02rem;line-height:1.5}
+.phr.big .phr-lu{font-size:clamp(1.12rem,4.6vw,1.4rem);font-weight:800;letter-spacing:-.015em}
+.phr-fr{color:var(--ink-2);font-size:.9rem;margin-top:6px;font-style:italic}
+.phr-gl{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px 4px}
+.phr-gl[hidden],.phr-fr[hidden]{display:none}
+.gw{display:inline-flex;flex-direction:column;align-items:center;padding:3px 7px;border-radius:8px;
+  background:var(--surface);border:1px solid var(--line);line-height:1.25}
+.gw b{font-size:.88rem;color:var(--lux-red)}
+.gw small{font-size:.68rem;color:var(--muted);max-width:10em;text-align:center}
+.gw.unk small{opacity:.55}
+.phr-tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.phr-tools button,.phr-tools a{padding:6px 10px;border-radius:9px;border:1px solid var(--line);background:var(--surface);
+  font-size:.76rem;font-weight:750;color:var(--ink-2);text-decoration:none;min-height:32px;display:inline-flex;align-items:center}
+.phr-tools .on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.opt .ofr{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-top:4px;font-style:italic}
+.opt .ofr[hidden]{display:none}
+.mstep{display:flex;gap:4px;margin:2px 0 12px}
+.mstep i{flex:1;height:5px;border-radius:999px;background:var(--line)}
+.mstep i.on{background:var(--good)}
+.cl-gap{display:inline-block;min-width:3.4em;padding:0 .3em;border-bottom:2px solid var(--lux-blue);
+  color:var(--lux-blue);margin:0 .1em;text-align:center;cursor:pointer}
+.cl-gap.ok{border-color:var(--good);color:var(--good)}
+.cl-gap.ko{border-color:var(--bad);color:var(--bad)}
+.diff span{border-radius:5px;padding:1px 3px}
+.diff .ok{background:var(--good-bg);color:var(--good)}
+.diff .ko{background:var(--bad-bg);color:var(--bad);text-decoration:underline}
+.pbox{flex:0 0 auto;font-size:.66rem;font-weight:850;padding:2px 7px;border-radius:999px;white-space:nowrap;
+  background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.pbox.done{background:var(--good-bg);color:var(--good);border-color:transparent}
+#refSeg{flex-wrap:wrap}
+#refSeg button{white-space:nowrap;flex:1 1 auto}
+
 #fx{position:fixed;inset:0;z-index:300;pointer-events:none;display:none}
 
 @media (prefers-reduced-motion:reduce){
@@ -756,6 +793,9 @@ table.conj td.p{color:var(--muted);width:45%;font-size:.85rem}
         <h1 style="font-size:1.5rem">M'entraîner</h1>
         <p class="lead">Des sessions courtes et guidées. Chacune compte pour ton objectif du jour.</p>
 
+        <div class="sec-h"><h2>Mes réponses d'examen</h2><span class="more" data-act="memo-method">la méthode</span></div>
+        <div id="memoBox"></div>
+
         <div class="sec-h"><h2>Sessions recommandées</h2></div>
         <div id="learnModes"></div>
 
@@ -812,6 +852,7 @@ table.conj td.p{color:var(--muted);width:45%;font-size:.85rem}
           <button data-rf="gram">📐 Grammaire</button>
           <button data-rf="conj">🔤 Conjugaison</button>
           <button data-rf="pic">🖼️ Méthode image</button>
+          <button data-rf="tr">🌐 Traduire</button>
         </div>
 
         <div id="rfQtypes" class="rf-pane">
@@ -829,6 +870,15 @@ table.conj td.p{color:var(--muted);width:45%;font-size:.85rem}
         </div>
         <div id="rfPic" class="rf-pane" hidden>
           <div id="pictureList"></div>
+        </div>
+        <div id="rfTr" class="rf-pane" hidden>
+          <div class="note">🌐 Cherche un mot ou une phrase, <b>en français ou en luxembourgeois</b>. La recherche marche hors ligne. Les boutons Google ouvrent une traduction automatique : pratique pour vérifier ta propre phrase, mais elle peut contenir des fautes.</div>
+          <input class="input" id="trIn" placeholder="ex. travailler, le soir, Aarbecht, gär…" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <div class="row tight" style="margin:10px 0 14px">
+            <a class="btn sm soft" id="trG1" target="_blank" rel="noopener" href="#">🌐 Google FR → LU</a>
+            <a class="btn sm soft" id="trG2" target="_blank" rel="noopener" href="#">🌐 Google LU → FR</a>
+          </div>
+          <div id="trOut"></div>
         </div>
       </section>
 
@@ -1341,6 +1391,27 @@ const ORAL={
  ]
 };
 
+/* ===== traduction française des réponses modèles (même ordre que ORAL) ===== */
+const ORAL_AFR = {
+ "👨‍👩‍👧 Famill":["J'ai une petite famille. Je suis marié et j'ai deux enfants, un fils et une fille.","Mon père a 60 ans et il est à la retraite.","Mes parents habitent au Maroc, mais ma sœur habite au Luxembourg."],
+ "🧹 De Stot maachen":["À la maison, nous faisons le ménage ensemble. Je nettoie et ma femme s'occupe du linge.","Je n'aime pas faire la vaisselle, mais j'aime ranger.","Je nettoie l'appartement une fois par semaine, la plupart du temps le samedi."],
+ "✈️ Vakanz a Reesen":["L'an dernier, j'étais en Italie. J'y suis allé en avion et le temps était super.","Je préfère faire des vacances de randonnée, parce que j'aime être dans la nature.","Le temps était très beau et chaud, mais un jour il a plu."],
+ "🎬 Medien & Film":["Je regarde un peu la télé chaque soir, surtout les infos.","J'aime regarder des comédies et des policiers, parce qu'ils sont passionnants.","Je lis les infos sur internet et j'écoute la radio le matin."],
+ "🎯 Hobbyen":["Mes loisirs sont la lecture et la cuisine. Le week-end, j'aime aussi peindre.","Je lis chaque soir et je cuisine quelque chose de nouveau deux fois par semaine.","Je préfère lire seul, mais j'aime cuisiner avec mes amis."],
+ "🚌 Transportmëttelen":["Je vais au travail à vélo, mais par mauvais temps je prends le bus.","Je préfère prendre le train, parce que je peux y lire.","Je mets environ une demi-heure pour aller au travail."],
+ "💼 Aarbecht":["Je travaille dans un bureau comme comptable.","Mon travail me plaît beaucoup, parce que mes collègues sont très gentils.","J'y travaille depuis cinq ans."],
+ "🛒 Akafe goen":["Je fais les courses une fois par semaine, la plupart du temps le samedi au supermarché.","Oui, j'aime faire les courses, surtout au marché.","J'achète mes aliments au supermarché et les fruits au marché."],
+ "🍽️ Iessen & Drénken":["J'aime manger du poisson et des légumes. Mon plat préféré, ce sont les pâtes.","À midi je mange juste une salade, c'est pourquoi le soir je préfère manger chaud.","Oui, j'aime beaucoup cuisiner, surtout le week-end pour ma famille."],
+ "🎁 Kaddoen":["J'offre des cadeaux aux anniversaires et à Noël.","J'aime offrir des fleurs ou un bon livre.","Oui, bien sûr, j'aime recevoir des cadeaux, surtout quand ils viennent du cœur."],
+ "📅 Alldag":["Je me lève tous les jours à six heures et je prends le petit-déjeuner avec ma famille.","D'abord j'emmène les enfants à l'école, ensuite je vais travailler et le soir je cuisine.","Le soir nous mangeons ensemble, après je regarde un peu la télé et je vais dormir à dix heures."],
+ "🩺 Gesond liewen":["Je bouge beaucoup, je bois beaucoup d'eau et je ne fume pas.","Oui, je cours trois fois par semaine et je mange beaucoup de fruits et de légumes.","La plupart du temps je dors sept heures, mais parfois trop peu à cause du travail."],
+ "🏠 Wunnen":["J'habite dans un petit appartement avec deux chambres et un balcon.","J'habite à Esch, dans un quartier calme près du centre.","J'y habite depuis trois ans et ça me plaît beaucoup."],
+ "👕 Moud & Kleeder":["J'aime porter des vêtements confortables, la plupart du temps un jean et un t-shirt.","Oui, j'aime acheter de nouveaux vêtements, mais pas trop souvent, environ une fois par mois.","C'est le bleu qui me plaît le plus, parce que c'est une couleur calme."],
+ "🏅 Sport":["Oui, j'aime beaucoup le sport, à savoir la natation et la course.","Je vais à la salle de sport trois fois par semaine, toujours après le travail.","Je préfère nager, parce que c'est bon pour le dos."],
+ "🗣️ Sproochen":["Je parle quatre langues : français, anglais, un peu d'allemand et maintenant luxembourgeois.","J'apprends le luxembourgeois depuis un an, et ça me plaît beaucoup.","J'apprends le mieux en parlant avec les gens et en écoutant souvent."]
+};
+/* ===== mot à mot : formes telles qu'elles apparaissent dans les réponses ===== */
+const GLOSS = Object.fromEntries(`a=et|aacht=huit|aarbecht=travail|akafen=faire les courses|al=âgé|all=chaque / tous|allerdéngs=cependant|als=comme|am=dans le / au|an=et / dans|andeems=en (+ -ant)|ass=est|auer=heure(s)|aus=de / hors de|ausser=sauf|auto=voiture|awer=mais|balkon=balcon|bananen=bananes|bei=chez / par|beim=près du|benotzt=utilisez|bequem=confortable(s)|beschten=(am …) le plus|besiche=rendons visite|besonnesch=surtout|bestuet=marié|beweege=bouge|bleift=restez|bleiwen=rester|blo=bleu|blummen=fleurs|botzen=nettoie|botzt=nettoyez|brauch=mets (du temps)|bréngen=emmène|buch=livre|bus=bus|bëssen=(e …) un peu|büro=bureau|chrëschtdag=Noël|comptabel=comptable|aktualitéit=actualité|lescht=dernier (d'lescht Joer = l'an dernier)|schoul=école|éischt=(fir d'éischt) d'abord|dacks=souvent|dag=jour|dann=ensuite|danzen=dansons|dat=ça|de=le|dem=le|den=le|deng=ta|der=la|dir=vous|do=là / y|dofir=c'est pourquoi|doheem=à la maison|donneschdeg=jeudi|dono=après|droe=porte|dräi=trois|dräimol=trois fois|dréit=portez|drénke=bois|drénken=boire|duechter=fille|däi=ton|däitsch=allemand|dënschdeg=mardi|e=un|ech=je|ee=un|eemol=une fois|een=un|eleng=seul|elo=maintenant|elteren=parents|en=un|eng=une|engem=un|enger=une|englesch=anglais|eppes=quelque chose|erziel=raconte|esch=Esch (ville)|et=il / ça|faarf=couleur|famill=famille|fester=fêtes|filmer=films|fir=pour|fitness=salle de sport|fliger=avion|fra=femme|franséisch=français|fréistécken=prends le petit-déj|frëndin=amie|frënn=amis|fuere=vais (en véhicule)|fueren=vais (en véhicule)|fuert=allez (en véhicule)|fussball=football|fëmmen=fume|fënnef=cinq|fësch=poisson|gaart=jardin|ganz=très|gebuertsdeeg=anniversaires|geflunn=allé en avion|gefält=plaît|geméis=légumes|genuch=assez|gereent=plu|gesond=en bonne santé|gesäit=(… aus) ressemble|ginn=vais / allons|gitt=allez|gutt=bien / bon|gär=aimer (+ verbe)|hallef=demi(e)|hei=ici|heiansdo=parfois|hien=il|himmel=ciel|hirem=leur|hobby=loisir|hobbyen=loisirs|huelen=prends|huet=a|hunn=ai / avons|hutt=avez|hybrid=hybride|häerz=cœur|hëllefen=aide|iech=vous|iesse=mange|iessen=mange / manger|iesst=mangez|informéiert=informez|internet=internet|italien=Italie|iwwer=sur (au sujet de)|jeans=jean|jo=oui|joer=an(s) / année|jong=fils|just=juste|kaaft=achetez|kache=cuisine|kachen=cuisine / cuisiner|kacht=cuisinez|kaddoen=cadeaux|kafe=achète|kafen=achète / acheter|kaffi=café|kal=froid|kann=peux|kanner=enfants|kascht=coûte|kleeder=vêtements|kleng=petite|klenger=petit(e)|kolleege=collègues|komedien=comédies|komfortabel=confortable|kommen=viennent|krimis=policiers (films)|kritt=recevez|kréien=reçois|kucke=regarde|kucken=regarde / regarder|kuckt=regardez|kuerz=court(es)|këmmert=(sech ëm …) s'occupe de|kënnen=pouvons|laang=long(ues)|lafen=cours (courir)|lauschtere=écoute|lauschteren=écoute / écouter|leit=gens|lieblingsiessen=plat préféré|liese=lis / lire|liesen=lis / lire|liewensmëttel=aliments|léiere=apprends|léieren=apprends / apprendre|léiert=apprenez|léif=gentils|léifsten=(am …) de préférence|léiwer=plutôt (préférer)|lëtzebuerg=Luxembourg|lëtzebuergesch=luxembourgeois|maache=fais / faisons|maachen=fais / faire|maacht=faites|maart=marché|mam=avec le / en|mamm=mère|marokko=Maroc|mat=avec|mech=me|meeschtens=la plupart du temps|meng=mon / ma / mes|menge=mes|menger=ma|mir=nous / me|moies=le matin|mol=fois|molen=peins / dessine|mount=mois|musek=musique|muss=dois|mäi=mon|mäin=mon|mécht=fait|mëttes=à midi|mëttespaus=pause de midi|nach=encore|natierlech=bien sûr|natur=nature|nei=nouveaux|neies=(eppes …) de nouveau|net=ne … pas|no=après / près|normalerweis=normalement|nuecht=nuit|nëmmen=seulement|och=aussi|oder=ou|oft=souvent|ofwäschen=faire la vaisselle|ongeféier=environ|op=sur / à|oprëmen=ranger|owend=soir|owes=le soir|papp=père|pardon=pardon|pasta=pâtes|pensionéiert=à la retraite|quartier=quartier|radio=radio|reegelméisseg=régulièrement|roueg=calme|rouege=calme|réck=dos|samschdeg=samedi|schaffen=travaille / travailler|schafft=travaillez|schenke=offre|schenkt=offrez|schlechtem=mauvais|schlofen=dors / dormir|schloft=dormez|schlofzëmmeren=chambres|schonn=déjà|schwamme=nage|schwammen=nager|schwätze=parle|schwätzen=parle / parler|schwätzt=parlez|schwëster=sœur|schéin=beau|se=les / ils|sech=se|sechs=six|si=ils / elle / sont|sinn=suis / sont / être|siwe=sept|soen=dire|sonndeg=dimanche|spaass=plaisir|spannend=passionnant(s)|spillen=jouent|sport=sport|sprooch=langue|sprooche=langues|sproochen=langues|stinn=(… op) me lève|stitt=(… op) vous levez|stonn=heure|stonnen=heures|stot=ménage|stuff=salon|super=super|supermarché=supermarché|säit=depuis|sëtze=sommes assis|transportmëttel=moyen de transport|tëlee=télé|uebst=fruits|um=sur le / à|vakanz=vacances|vakanzen=vacances|vill=beaucoup|véier=quatre|vëlo=vélo|wa=quand / si|waarm=chaud|waart=étiez|waasser=eau|war=étais / était|wat=quoi / que|weekend=week-end|well=parce que|wieder=temps (météo)|wien=qui|woch=semaine|wochen=semaines|wou=où|wunnen=habite / habiter|wunneng=appartement|wunnt=habitez / habite|wäiss=blanc|wäsch=linge|wéi=comment|wéineg=peu|wéini=quand|wéinst=à cause de|wéivill=combien|wëllt=voulez|yoga=yoga|zalot=salade|zanter=depuis|ze=trop / de|zentrum=centre|zesumme=ensemble|zesummen=ensemble|zort=sorte|zu=à|zuch=train|zwar=(an …) à savoir|zwee=deux|zweemol=deux fois|zwou=deux|zéng=dix|zëmmer=pièce|äppel=pommes|är=votre / vos|ären=votre|ëm=(sech … këmmeren) de|ëmmer=toujours|noriichten=infos|haus=maison|kand=enfant`.split('|').map(x => x.split('=')));
 /* ===== picture method ===== */
 const PICTURE = [
   {t:"A. La situation — commencer",
@@ -1495,6 +1566,7 @@ const DEFAULT_STATE = () => ({
   plan: { start: null, done: {} },
   records: {},
   pic: {},                       // id photo -> {done, self, date}
+  phr: {},                       // id phrase -> {b, due, seen, ok, ko, first, last}
   tipIdx: 0,
   lastSeen: null
 });
@@ -1671,6 +1743,7 @@ const accN = s => (S.acc[s]?.n) || 0;
    SCORE DE PRÉPARATION — 5 axes, chacun avec un objectif atteignable
    ============================================================================ */
 const READY_AXES = [
+  { k: 'phr', label: 'Phrases', icon: '🧠', goal: '40 réponses par cœur', go: () => startPreset('memo') },
   { k: 'vocab', label: 'Vocabulaire', icon: '🃏', goal: 'apprendre 200 mots', go: () => startPreset('srs') },
   { k: 'recog', label: 'Types de Q.', icon: '🕵️', goal: '40 questions bien classées', go: () => startPreset('recog') },
   { k: 'gram', label: 'Grammaire', icon: '📐', goal: '40 exercices réussis', go: () => startPreset('gram') },
@@ -1684,8 +1757,9 @@ function readiness() {
   const gram = clamp((accN('gram') + accN('conj')) / 40, 0, 1) * ((accN('gram') + accN('conj')) ? ((S.acc.gram?.ok || 0) + (S.acc.conj?.ok || 0)) / ((S.acc.gram?.n || 0) + (S.acc.conj?.n || 0)) : 0);
   const oral = clamp(Object.values(S.oral).filter(o => o.done).length / 48, 0, 1);
   const exam = clamp((S.mocks || []).length / 4, 0, 1);
-  const parts = { vocab, recog, gram, oral, exam };
-  const total = Math.round((vocab + recog + gram + oral + exam) / 5 * 100);
+  const phr = clamp(PHRASES.reduce((a, p) => a + Math.min(phrBox(p.id), PHR_DONE), 0) / PHR_DONE / 40, 0, 1);
+  const parts = { phr, vocab, recog, gram, oral, exam };
+  const total = Math.round((phr + vocab + recog + gram + oral + exam) / 6 * 100);
   return { parts, total };
 }
 
@@ -1795,6 +1869,7 @@ const BADGES = [
   { id: 'mock4', e: '🎖️', t: 'Rodé', d: '4 examens blancs', test: () => (S.mocks || []).length >= 4 },
   { id: 'early', e: '🌅', t: 'Lève-tôt', d: 'Une session avant 8 h', test: () => !!S.badges.early },
   { id: 'night', e: '🦉', t: 'Noctambule', d: 'Une session après 22 h', test: () => !!S.badges.night },
+  { id: 'phr10', e: '🧠', t: 'Par cœur', d: '10 réponses par cœur', test: () => phrDoneCount() >= 10 },
   { id: 'ready', e: '✅', t: 'Prêt·e', d: 'Score de préparation ≥ 80 %', test: () => readiness().total >= 80 }
 ];
 function checkBadges() {
@@ -1853,18 +1928,20 @@ function dayPlan(idx) {
   } else if (phase === 1) {
     add('new', '🃏', `Découvrir « ${theme} »`, 'Nouveaux mots en flashcards', () => startPreset('new', theme));
     add('srs', '♻️', 'Révision du jour', 'Les cartes dues aujourd\'hui', () => startPreset('srs'));
-    add('answer', '🪜', 'Construire mes réponses', 'Reprendre le verbe + squelette, à voix haute', () => startPreset('answer'));
+    add('memo', '🧠', 'Mémoriser mes réponses', '3 nouvelles phrases + celles à revoir', () => startPreset('memo'));
+    add('answer', '🎯', 'Choisir la bonne réponse', 'Question → la phrase qui y répond', () => startPreset('pick'));
     if (idx % 2) add('recog', '🕵️', 'Reconnaître la question', 'Le réflexe n°1 de l\'examen', () => startPreset('recog'));
     if (idx % 3 === 1) add('img', '🖼️', 'Image pas à pas', 'Décrire une photo, guidé', () => startPreset('pic'));
     if (idx % 4 === 0) add('gram', '📐', 'Un point de grammaire', 'Fiche + exercices', () => startPreset('gram'));
   } else if (phase === 2) {
     add('srs', '♻️', 'Révision du jour', 'Les cartes dues aujourd\'hui', () => startPreset('srs'));
-    add('typed', '⌨️', 'Rappel actif', 'Quiz en saisie — plus exigeant', () => startPreset('typed'));
+    add('memo', '🧠', 'Mémoriser mes réponses', 'Écouter → choisir → compléter → construire → dire', () => startPreset('memo'));
     add('build', '🧩', 'Faire des phrases', 'Ordre des mots, verbe en 2ᵉ position', () => startPreset('build'));
     add('oral', '🎤', `Oral : « ${theme.replace(/^[^\s]+\s/, '')} »`, 'Réponds à voix haute puis compare', () => { showView('speak'); setSpeak('oral'); });
     if (idx % 3 === 0) add('img', '🖼️', 'Décrire une image', 'Méthode A-B-C, 5 min', () => { showView('speak'); setSpeak('photo'); });
   } else {
     if (idx % 7 === 0) add('mock', '🏆', 'Examen blanc complet', 'Comme le jour J', () => { showView('speak'); setSpeak('mock'); });
+    add('memo', '🧠', 'Mémoriser mes réponses', 'Les phrases à revoir aujourd\'hui', () => startPreset('memo'));
     add('mix', '🌍', 'Révision mixte', 'Tous thèmes confondus', () => startPreset('daily'));
     add('img', '🖼️', 'Image chronométrée', 'Montre en main', () => { showView('speak'); setSpeak('photo'); });
     add('oral', '🎤', 'Oral libre', 'Tes goûts, ta semaine', () => { showView('speak'); setSpeak('oral'); });
@@ -1994,6 +2071,155 @@ const buildPool = () => {
   return p.length ? p : BUILD_POOL;
 };
 
+/* ---------- phrases d'examen : mémoriser des réponses entières ---------- */
+const PHRASES = (() => {
+  const out = [];
+  ORAL_KEYS.forEach(t => ORAL[t].forEach((o, i) => out.push({ id: t + '|' + i, topic: t, q: o.q, qfr: o.fr, a: o.a, afr: (ORAL_AFR[t] || [])[i] || '' })));
+  QTYPES.forEach(t => out.push({ id: 'QT|' + t.kw, topic: '❓ Les 7 questions', q: t.q, qfr: t.qfr, a: t.a, afr: t.afr }));
+  out.forEach(p => { p.type = qTypeOf(p.q); });
+  return out;
+})();
+const PHRASE_OF = Object.fromEntries(PHRASES.map(p => [p.id, p]));
+const PHR_TOPICS = uniqBy(PHRASES.map(p => p.topic), x => x);
+const PBOX_DAYS = [0, 1, 2, 3, 6, 12, 25];
+const PHR_DONE = 5;
+const MSTEPS = ['Écouter', 'Choisir', 'Compléter', 'Construire', 'Dire de mémoire'];
+const phrBox = id => S.phr[id]?.b || 0;
+const phrSeen = id => !!S.phr[id];
+const phrDue = id => { const r = S.phr[id]; return !!r && r.due <= TODAY; };
+const phrDoneCount = () => PHRASES.filter(p => phrBox(p.id) >= PHR_DONE).length;
+const phrDueCount = () => PHRASES.filter(p => phrDue(p.id)).length;
+const phrLabel = id => !phrSeen(id) ? 'nouvelle' : phrBox(id) >= PHR_DONE ? '✅ par cœur' : `étape ${phrBox(id) + 1}/5`;
+
+// la note perso : la 1re partie est la réponse, la suite (« À retenir … ») sert d'aide-mémoire
+function myVersion(p) {
+  const note = (S.oral[p.id]?.note || '').trim();
+  if (!note) return null;
+  const [head, ...rest] = note.split(/\n\s*\n|\n(?=\s*à retenir)/iu);
+  const lu = head.replace(/\s+/g, ' ').trim();
+  if (lu.length < 8 || /^à retenir/iu.test(lu)) return null;
+  return { lu, help: rest.join('\n').trim() };
+}
+function target(p) {
+  const m = myVersion(p);
+  return m ? { lu: m.lu, fr: '', help: m.help, mine: true } : { lu: p.a, fr: p.afr, help: '', mine: false };
+}
+
+/* q : 0 raté · 1 hésité · 2 réussi · 'learn' première écoute */
+function phrGrade(id, q) {
+  const r = S.phr[id] || (S.phr[id] = { b: 0, due: TODAY, seen: 0, ok: 0, ko: 0, first: TODAY });
+  r.seen++; r.last = TODAY;
+  if (q === 'learn') r.b = Math.max(r.b, 1);
+  else if (q === 0) { r.ko++; r.b = Math.max(1, r.b - 1); }
+  else if (q === 1) r.ok++;
+  else { r.ok++; r.b = Math.min(PBOX_DAYS.length - 1, r.b + 1); }
+  r.due = q === 0 ? TODAY : addDays(TODAY, PBOX_DAYS[r.b]);
+  save();
+  return r.b;
+}
+
+/* ---------- outils de traduction ---------- */
+const LEX = (() => {
+  const m = {};
+  ALL_WORDS.forEach(([lux, fr]) => coreForms(lux).forEach(f => { if (!f.includes(' ')) m[f.toLowerCase()] = fr; }));
+  return Object.assign(m, GLOSS);
+})();
+function glossOf(raw) {
+  const w = raw.toLowerCase().replace(/^[«"(]+|[».,!?:;")]+$/g, '');
+  if (!w || /^\d+$/.test(w)) return w;
+  if (LEX[w]) return LEX[w];
+  const m = /^d'(.+)$/.exec(w);
+  if (m && LEX[m[1]]) return 'le/la ' + LEX[m[1]];
+  const parts = w.split('-');
+  if (parts.length > 1 && parts.every(x => LEX[x])) return parts.map(x => LEX[x]).join('-');
+  return '';
+}
+const glossHtml = lu => lu.split(/\s+/).filter(Boolean).map(tok => {
+  const g = glossOf(tok);
+  return `<span class="gw${g ? '' : ' unk'}"><b>${esc(tok)}</b><small>${esc(g || '?')}</small></span>`;
+}).join('');
+const gtUrl = (txt, from, to) => `https://translate.google.com/?sl=${from}&tl=${to}&text=${encodeURIComponent(txt)}&op=translate`;
+function phraseHtml(lu, fr, o = {}) {
+  return `<div class="phr${o.big ? ' big' : ''}" data-lu="${esc(lu)}">
+    <div class="phr-lu lux">${esc(lu)}</div>
+    ${fr ? `<div class="phr-fr"${o.fr ? '' : ' hidden'}>${esc(fr)}</div>` : ''}
+    <div class="phr-gl"${o.gloss ? '' : ' hidden'}>${glossHtml(lu)}</div>
+    <div class="phr-tools">
+      <button data-ph="say">🔊 Écouter</button><button data-ph="slow">🐢 Lentement</button>
+      ${fr ? `<button data-ph="fr"${o.fr ? ' class="on"' : ''}>🇫🇷 Traduction</button>` : ''}
+      <button data-ph="gl"${o.gloss ? ' class="on"' : ''}>🔤 Mot à mot</button>
+      <a data-ph="gt" href="${gtUrl(lu, 'lb', 'fr')}" target="_blank" rel="noopener">🌐 Google</a>
+    </div></div>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-ph]'); if (!b) return;
+  const box = b.closest('.phr'); if (!box) return;
+  const k = b.dataset.ph;
+  if (k === 'say' || k === 'slow') { e.preventDefault(); speak(box.dataset.lu, k === 'slow' ? .6 : .88); }
+  else if (k === 'fr' || k === 'gl') {
+    e.preventDefault();
+    const el = qs(k === 'fr' ? '.phr-fr' : '.phr-gl', box);
+    el.hidden = !el.hidden; b.classList.toggle('on', !el.hidden);
+  }
+});
+/* comparaison mot à mot d'une phrase écrite de mémoire (plus longue sous-suite commune) */
+function wordDiff(want, got) {
+  const a = want.split(/\s+/).filter(Boolean), A = a.map(norm), B = got.split(/\s+/).map(norm).filter(Boolean);
+  const L = Array.from({ length: A.length + 1 }, () => new Array(B.length + 1).fill(0));
+  for (let i = A.length - 1; i >= 0; i--) for (let j = B.length - 1; j >= 0; j--)
+    L[i][j] = A[i] === B[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const hit = new Set(); let i = 0, j = 0;
+  while (i < A.length && j < B.length) {
+    if (A[i] === B[j]) { hit.add(i); i++; j++; } else if (L[i + 1][j] >= L[i][j + 1]) i++; else j++;
+  }
+  return { html: a.map((w, k) => `<span class="${hit.has(k) ? 'ok' : 'ko'}">${esc(w)}</span>`).join(' '), score: A.length ? hit.size / A.length : 0 };
+}
+
+/* ---------- étapes de mémorisation, choisies selon la boîte de la phrase ---------- */
+function pickStep(p, memo) {
+  p = p || pick(PHRASES);
+  const t = target(p);
+  const others = PHRASES.filter(x => x.id !== p.id && x.a !== t.lu);
+  const sameTopic = shuffle(others.filter(x => x.topic === p.topic));
+  const sameType = shuffle(others.filter(x => x.type && x.type === p.type && x.topic !== p.topic));
+  const wrong = uniqBy([sameTopic[0], sameType[0], ...shuffle(others)].filter(Boolean), x => x.a).slice(0, 3);
+  const opts = shuffle([{ lu: t.lu, fr: t.fr || '(ta version perso)', right: true }, ...wrong.map(x => ({ lu: x.a, fr: x.afr, q: x.q }))]);
+  return { type: 'mpick', p, memo: !!memo, opts };
+}
+function orderStep(p) {
+  const lu = target(p).lu.replace(/\s+/g, ' ').trim();
+  const full = lu.replace(/[.!?]$/, '');
+  const s = chunks(full).length > 12 ? firstSentence(lu).replace(/[.!?]$/, '') : full;
+  return { type: 'build', item: { s, fr: target(p).fr, q: p.q }, pid: p.id, p };
+}
+function memoStep(p) {
+  const b = phrBox(p.id);
+  if (!phrSeen(p.id)) return { type: 'mlearn', p };
+  if (b <= 1) return pickStep(p, true);
+  if (b === 2) return { type: 'mcloze', p, n: 2 };
+  if (b === 3) return orderStep(p);
+  return { type: 'mrecall', p };
+}
+/* une phrase ratée revient en fin de session, une étape plus facile */
+function memoRetry(st, good) {
+  if (good || !SX || st.retry) return;
+  SX.steps.push(Object.assign(memoStep(st.p), { retry: true }));
+}
+function memoQueue(topic) {
+  const pool = topic ? PHRASES.filter(p => p.topic === topic) : PHRASES;
+  const rev = shuffle(pool.filter(p => phrSeen(p.id) && (topic || phrDue(p.id)))).sort((a, b) => phrBox(a.id) - phrBox(b.id));
+  // ta version perso passe avant les modèles
+  const fresh = pool.filter(p => !phrSeen(p.id)).sort((a, b) => Number(!!myVersion(b)) - Number(!!myVersion(a)));
+  const news = fresh.slice(0, topic ? 3 : rev.length > 8 ? 1 : 3);
+  let steps = news.map(p => ({ type: 'mlearn', p }))
+    .concat(rev.slice(0, topic ? 6 : 8).map(memoStep), news.map(p => pickStep(p, true)));
+  if (!steps.length) steps = shuffle(PHRASES.filter(p => phrSeen(p.id))).sort((a, b) => phrBox(a.id) - phrBox(b.id)).slice(0, 6).map(memoStep);
+  return steps;
+}
+const mstepBar = i => `<div class="mstep">${MSTEPS.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</div>`;
+const CLOZE_SKIP = new Set([...GLUE, 'ech', 'a', 'si', 'et', 'ass', 'net', 'mir', 'hien', 'du', 'dir', 'jo', 'nee']);
+const stripPunct = w => w.replace(/[.,!?:;]+$/, '');
+
 /* ---------- construction de la file d'exercices ---------- */
 const SIZE_BY_MIN = { 5: 8, 10: 14, 15: 20, 20: 26 };
 const sessionSize = () => SIZE_BY_MIN[S.profile.minutes] || 14;
@@ -2072,7 +2298,9 @@ function buildQueue(preset, arg) {
       .concat(fresh.slice(0, nNew).map(w => ({ type: 'card', w })));
     const extras = [];
     // production : comprendre ne suffit pas, chaque session fait répondre et construire
-    extras.push(recogStep(), answerStep(), answerStep());
+    extras.push(recogStep(), answerStep());
+    // les phrases d'examen ne doivent pas être coupées par la taille de la session
+    const must = [pickStep()].concat(shuffle(PHRASES.filter(p => phrDue(p.id))).slice(0, 2).map(memoStep));
     const ctx = ctxStep(); if (ctx) extras.push(ctx);
     extras.push(Math.random() < .5 ? gramStep() : conjStep());
     if (BUILD_POOL.length) extras.push(buildStep());
@@ -2087,7 +2315,8 @@ function buildQueue(preset, arg) {
       if (!seen.length) break;
       steps.push(reviewStep(pick(seen)));
     }
-    steps = shuffleKeepingNewFirst(steps).slice(0, N);
+    steps = shuffleKeepingNewFirst(steps).slice(0, Math.max(0, N - must.length));
+    must.forEach(m => steps.splice(Math.min(steps.length, 2 + rnd(Math.max(1, steps.length - 1))), 0, m));
   }
   else if (preset === 'srs') {
     if (!due.length) return [];
@@ -2120,6 +2349,8 @@ function buildQueue(preset, arg) {
     const pool = seen.length >= 5 ? seen : shuffle(ALL_WORDS.filter(x => CTX_OF[x[0]]));
     steps = pool.slice(0, 10).map(clozeStep);
   }
+  else if (preset === 'memo') steps = memoQueue(arg || null);
+  else if (preset === 'pick') steps = shuffle(PHRASES).slice(0, 10).map(p => pickStep(p, false));
   else if (preset === 'pic') steps = picSteps(arg != null && arg !== '' ? +arg : rnd(PHOTOS.length));
   else if (preset === 'oral') steps = Array.from({ length: 5 }, oralStep);
   else if (preset === 'express') {
@@ -2158,11 +2389,13 @@ const PRESET_LABEL = {
   quiz: 'Quiz éclair', typed: 'Rappel actif', listen: 'Compréhension orale', recog: 'Types de questions',
   gram: 'Grammaire', conj: 'Conjugaison', build: 'Ordre des mots', oral: 'Entraînement oral',
   express: 'Révision express', weak: 'Mes mots fragiles',
-  answer: 'Construire ma réponse', context: 'Mots en contexte', pic: 'Image pas à pas'
+  answer: 'Construire ma réponse', context: 'Mots en contexte', pic: 'Image pas à pas',
+  memo: 'Mémoriser mes réponses', pick: 'Choisis la bonne réponse'
 };
 
 /* ---------- cycle de vie ---------- */
 function startPreset(preset, arg) {
+  if (preset === 'memo' && !S.badges.memoIntro) { S.badges.memoIntro = TODAY; save(); return memoMethod(); }
   const steps = buildQueue(preset, arg);
   if (!steps.length) {
     openSheet(`<div style="text-align:center">
@@ -2222,7 +2455,8 @@ function renderStep() {
   ({
     card: rCard, mcq: rMcq, typed: rTyped, listen: rListen, recog: rRecog,
     gram: rGram, conj: rConj, build: rBuild, oral: rOral,
-    answer: rAnswer, cloze: rCloze, picq: rPicq, picsay: rPicsay
+    answer: rAnswer, cloze: rCloze, picq: rPicq, picsay: rPicsay,
+    mlearn: rMlearn, mpick: rMpick, mcloze: rMcloze, mrecall: rMrecall
   })[st.type](st, body);
 }
 const kicker = (label, extra) => `<div class="sx-kicker"><span class="k-dot"></span>${esc(label)}${extra ? ' · ' + extra : ''}</div>`;
@@ -2411,8 +2645,8 @@ function rBuild(st, body) {
   const target = chunks(st.item.s);
   const bank = shuffle(target.map((w, i) => ({ w, i })));
   st.tries = st.tries || 0;
-  body.innerHTML = kicker('Ordre des mots', 'le verbe en 2ᵉ position')
-    + `<div class="sx-q" style="font-size:1.05rem;font-weight:700">${esc(st.item.fr)}
+  body.innerHTML = kicker(st.pid ? 'Mémoriser' : 'Ordre des mots', st.pid ? '4/5 · Construire' : 'le verbe en 2ᵉ position') + (st.pid ? mstepBar(3) : '')
+    + `<div class="sx-q" style="font-size:1.05rem;font-weight:700">${st.item.q ? `<span class="lux">${esc(st.item.q)}</span><br>` : ''}${esc(st.item.fr || '')}
         <span class="sub">Reconstitue la phrase — les petits mots sont déjà collés à leur groupe</span></div>
        <div class="build-slot" id="slot"></div>
        <div class="bank" id="bank">${bank.map((b, k) => `<button class="word" data-k="${k}">${esc(b.w)}</button>`).join('')}</div>
@@ -2455,6 +2689,7 @@ function rBuild(st, body) {
       return;
     }
     trackAcc('build', good);
+    if (st.pid) { phrGrade(st.pid, good ? 2 : 0); memoRetry(st, good); }
     answered(good, good ? `<span class="lux">${esc(st.item.s)}</span>` : `La phrase correcte : <span class="lux">${esc(st.item.s)}</span>`,
       () => speak(st.item.s));
   };
@@ -2610,6 +2845,166 @@ function rPicsay(st, body) {
     SX.bestCombo = Math.max(SX.bestCombo, SX.combo);
     save(); buzz(10); beep('ok'); stopRec(); next();
   });
+}
+
+/* ---------- 13. mémoriser : écouter & comprendre ---------- */
+function rMlearn(st, body) {
+  const p = st.p, t = target(p);
+  let reps = 0;
+  body.innerHTML = kicker('Mémoriser', '1/5 · Écouter & comprendre') + mstepBar(0)
+    + `<div class="sx-q" style="font-size:1.1rem"><span class="lux">${esc(p.q)}</span><span class="sub">${esc(p.qfr)}</span></div>
+       <button class="btn soft sm" id="mqSay">🔊 La question</button>
+       <div class="r" style="margin-top:14px">${t.mine ? '✍️ Ta réponse perso' : 'La réponse à retenir'} :</div>
+       ${phraseHtml(t.lu, t.fr, { big: true, fr: true, gloss: true })}
+       ${t.help ? `<div class="note" style="white-space:pre-line">${esc(t.help)}</div>` : ''}
+       <div class="note">🧠 Écoute, lis la traduction et le mot à mot, puis <b>répète 3 fois à voix haute</b>. La 3ᵉ fois, essaie sans regarder.</div>`;
+  $('mqSay').onclick = () => speak(p.q);
+  speak(t.lu, .8);
+  const paintFoot = () => {
+    foot(reps >= 3
+      ? `<button class="btn primary big" id="sxGo">Je l'ai répétée 3 fois ›</button>`
+      : `<button class="btn primary big" id="mRep">🔁 Écouter et répéter · ${reps}/3</button>
+         ${reps ? '<button class="btn ghost big" id="sxGo" style="margin-top:8px">Continuer ›</button>' : ''}`);
+    const r = $('mRep'); if (r) r.onclick = () => { speak(t.lu, .8); reps++; buzz(8); paintFoot(); };
+    const g = $('sxGo'); if (g) g.onclick = done;
+  };
+  const done = () => {
+    phrGrade(p.id, 'learn');
+    SX.xp += 8; addXp(8, true); beep('ok');
+    next();
+  };
+  paintFoot();
+}
+
+/* ---------- 14. choisir la phrase qui répond à la question ---------- */
+function rMpick(st, body) {
+  const p = st.p;
+  body.innerHTML = kicker(st.memo ? 'Mémoriser' : 'Questions → réponses', st.memo ? '2/5 · Choisir' : 'choisis la bonne réponse') + (st.memo ? mstepBar(1) : '')
+    + `<div class="sx-q"><span class="lux">${esc(p.q)}</span><span class="sub" id="pkQfr" hidden>${esc(p.qfr)}</span></div>
+       <div class="row tight" style="margin-bottom:14px">
+         <button class="btn soft sm" id="sxSay">🔊 Écouter</button>
+         <button class="btn soft sm" id="pkQ">🇫🇷 Traduire la question</button>
+         <button class="btn soft sm" id="pkA">🇫🇷 Traduire les réponses</button></div>
+       <div class="opts">${st.opts.map((o, k) => `<button class="opt" data-k="${k}"><span class="kbd">${k + 1}</span><span><span class="lux">${esc(o.lu)}</span><span class="ofr" hidden>${esc(o.fr || '—')}</span></span></button>`).join('')}</div>`;
+  $('sxSay').onclick = () => speak(p.q); speak(p.q);
+  $('pkQ').onclick = () => { $('pkQfr').hidden = false; };
+  $('pkA').onclick = () => qsa('#sxBody .ofr').forEach(x => { x.hidden = false; });
+  foot(`<div class="r" style="text-align:center">Repère le mot-clé et le verbe de la question, puis choisis la phrase qui y répond</div>`);
+  qsa('#sxBody .opt').forEach((b, k) => b.onclick = () => {
+    if (SX.answered) return;
+    const good = !!st.opts[k].right;
+    qsa('#sxBody .opt').forEach((x, j) => { x.disabled = true; x.classList.add(st.opts[j].right ? 'correct' : 'faded'); });
+    if (!good) b.classList.remove('faded'), b.classList.add('wrong');
+    qsa('#sxBody .ofr').forEach(x => { x.hidden = false; });
+    $('pkQfr').hidden = false;
+    trackAcc('pick', good);
+    if (st.memo) { phrGrade(p.id, good ? 2 : 0); memoRetry(st, good); }
+    const info = answerInfo(p.q);
+    const why = (p.type ? `Mot-clé <b>${esc(p.type)}</b>` : 'Question') + (info.ech ? ` · Dir <b class="lux">${esc(info.dir)}</b> → ech <b class="lux">${esc(info.ech)}</b>` : '');
+    const other = !good && st.opts[k].q ? `<br><span class="r">Ta phrase répond à une autre question : « <span class="lux">${esc(st.opts[k].q)}</span> »</span>` : '';
+    answered(good, `${why}${other}<br><span class="r">🗣️ Redis la bonne réponse à voix haute.</span>`, () => speak(target(p).lu));
+  });
+}
+
+/* ---------- 15. compléter les mots manquants ---------- */
+function rMcloze(st, body) {
+  const p = st.p, t = target(p);
+  if (!st.g) {
+    const toks = t.lu.split(/\s+/).filter(Boolean);
+    const cand = toks.map((w, i) => ({ i, w: stripPunct(w) })).filter(x => x.w.length >= 3 && !CLOZE_SKIP.has(x.w.toLowerCase()));
+    const gaps = shuffle(cand).slice(0, st.n || 2).map(x => x.i).sort((a, b) => a - b);
+    const want = gaps.map(i => stripPunct(toks[i]));
+    const lw = want.map(w => w.toLowerCase());
+    const extra = uniqBy(shuffle(PHRASES.filter(x => x.id !== p.id).flatMap(x => x.a.split(' ').map(stripPunct)))
+      .filter(w => w.length >= 3 && !CLOZE_SKIP.has(w.toLowerCase()) && !lw.includes(w.toLowerCase())), w => w.toLowerCase()).slice(0, 2);
+    st.g = { toks, gaps, want, bank: shuffle([...want, ...extra]) };
+  }
+  const { toks, gaps, want, bank } = st.g;
+  const fill = [];
+  body.innerHTML = kicker('Mémoriser', '3/5 · Compléter') + mstepBar(2)
+    + `<div class="sx-q" style="font-size:1.05rem"><span class="lux">${esc(p.q)}</span><span class="sub">${esc(p.qfr)}</span></div>
+       <div class="phr big"><div class="phr-lu lux" id="clz"></div>${t.fr ? `<div class="phr-fr">${esc(t.fr)}</div>` : ''}</div>
+       <div class="bank" id="bank">${bank.map((w, k) => `<button class="word" data-k="${k}">${esc(w)}</button>`).join('')}</div>
+       <div class="r" style="margin-top:12px">Touche les mots manquants dans l'ordre. Touche un trou pour le vider.</div>`;
+  const paint = marks => {
+    $('clz').innerHTML = toks.map((w, i) => {
+      const gi = gaps.indexOf(i);
+      if (gi < 0) return esc(w);
+      const f = fill[gi], cls = marks ? (marks[gi] ? ' ok' : ' ko') : '';
+      return `<span class="cl-gap${cls}" data-gi="${gi}">${f ? esc(f.w) : '&nbsp;'}</span>${esc(w.slice(stripPunct(w).length))}`;
+    }).join(' ');
+    if (marks) return;
+    qsa('#clz .cl-gap').forEach(g => g.onclick = () => {
+      if (SX.answered) return;
+      const gi = +g.dataset.gi, f = fill[gi]; if (!f) return;
+      qsa('#bank .word')[f.k].classList.remove('used'); fill[gi] = undefined; paint(); refresh();
+    });
+  };
+  const refresh = () => {
+    if (SX.answered) return;
+    const full = gaps.every((_, gi) => fill[gi]);
+    foot(`<button class="btn primary big" id="sxGo" ${full ? '' : 'disabled'}>Vérifier</button>`);
+    $('sxGo').onclick = check;
+  };
+  qsa('#bank .word').forEach((b, k) => b.onclick = () => {
+    if (SX.answered || b.classList.contains('used')) return;
+    const gi = gaps.findIndex((_, x) => !fill[x]); if (gi < 0) return;
+    fill[gi] = { w: bank[k], k }; b.classList.add('used'); buzz(6); paint(); refresh();
+  });
+  const check = () => {
+    if (SX.answered) return;
+    const marks = want.map((w, gi) => fill[gi] && fill[gi].w.toLowerCase() === w.toLowerCase());
+    const good = marks.every(Boolean);
+    paint(marks);
+    trackAcc('phr', good);
+    phrGrade(p.id, good ? 2 : 0); memoRetry(st, good);
+    answered(good, `<span class="lux">${esc(t.lu)}</span>${t.fr ? `<br><span class="r">${esc(t.fr)}</span>` : ''}<br><span class="r">🗣️ Redis-la à voix haute, en entier.</span>`, () => speak(t.lu));
+  };
+  paint(); refresh();
+}
+
+/* ---------- 16. dire de mémoire ---------- */
+function rMrecall(st, body) {
+  const p = st.p, t = target(p);
+  const hint = t.lu.split(/\s+/).map(w => w[0] + w.slice(1).replace(/\p{L}/gu, '·')).join(' ');
+  body.innerHTML = kicker('Mémoriser', '5/5 · Dire de mémoire') + mstepBar(4)
+    + `<div class="sx-q"><span class="lux">${esc(p.q)}</span><span class="sub">${esc(p.qfr)}</span></div>
+       <div class="row tight" style="margin-bottom:12px"><button class="btn soft sm" id="sxSay">🔊 Écouter</button>
+         ${canRecord() ? '<button class="btn soft sm" id="rcRec">⏺ M\'enregistrer</button>' : ''}</div>
+       <div id="recBoxR"></div>
+       ${t.fr ? `<div class="note">🇫🇷 Ce que tu dois dire : <b>${esc(t.fr)}</b></div>` : `<div class="note">✍️ Ta réponse perso — redis-la sans la lire.</div>`}
+       <div class="note">🗣️ Dis la phrase <b>à voix haute, sans la lire</b>. Ensuite seulement, révèle-la.</div>
+       <details><summary>💡 Indice : les premières lettres</summary><div class="dbody"><div class="lux" style="letter-spacing:.03em">${esc(hint)}</div></div></details>
+       <details><summary>⌨️ Ou écris-la pour vérifier</summary><div class="dbody">
+         <textarea id="rcIn" placeholder="Écris la phrase de mémoire…"></textarea>
+         <button class="btn soft sm" id="rcCheck" style="margin-top:8px">Comparer</button><div id="rcDiff" class="diff" style="margin-top:10px"></div></div></details>
+       <div id="rcAns" hidden>${phraseHtml(t.lu, t.fr, { big: true })}</div>`;
+  $('sxSay').onclick = () => speak(p.q); speak(p.q);
+  const rb = $('rcRec'); if (rb) rb.onclick = () => oralRecord(rb, 'R');
+  $('rcCheck').onclick = () => {
+    const v = $('rcIn').value.trim(); if (!v) return;
+    const d = wordDiff(t.lu, v);
+    $('rcDiff').innerHTML = `<div style="line-height:1.9">${d.html}</div><div class="r" style="margin-top:6px">${Math.round(d.score * 100)} % des mots retrouvés · en rouge : les mots manquants ou différents</div>`;
+  };
+  const reveal = () => {
+    $('rcAns').hidden = false; speak(t.lu);
+    foot(`<div class="r" style="text-align:center;margin-bottom:10px">Tu l'avais dite comment ?</div>
+      <div class="grades">
+        <button class="grade g0" data-q="0"><em>😶</em>Oubliée<small>on la revoit</small></button>
+        <button class="grade g1" data-q="1"><em>🤔</em>Avec hésitation<small>bientôt</small></button>
+        <button class="grade g2" data-q="2"><em>😎</em>Par cœur<small>plus tard</small></button>
+      </div>`);
+    qsa('#sxFoot .grade').forEach(b => b.onclick = () => {
+      const q = +b.dataset.q;
+      phrGrade(p.id, q); trackAcc('recall', q === 2); memoRetry(st, q > 0);
+      if (q === 2) { SX.ok++; SX.combo++; } else { SX.combo = 0; if (q === 0) SX.ko++; }
+      SX.bestCombo = Math.max(SX.bestCombo, SX.combo);
+      const gain = 8 + q * 4; SX.xp += gain; addXp(gain, true);
+      buzz(10); beep(q === 0 ? 'no' : 'ok'); stopRec(); next();
+    });
+  };
+  foot(`<button class="btn primary big" id="sxGo">👀 Voir la phrase</button>`);
+  $('sxGo').onclick = reveal;
 }
 
 /* ---------- correction commune ---------- */
@@ -2801,7 +3196,7 @@ function renderHome() {
     { i: '⚡', t: 'Révision express', s: '2 minutes chrono', act: 'express' },
     { i: '♻️', t: 'Cartes dues', s: due ? `${due} en attente` : 'tout est à jour', act: 'srs', badge: due || 0 },
     { i: '🩹', t: 'Mots fragiles', s: 'ceux qui résistent', act: 'weak' },
-    { i: '🎧', t: 'Écoute', s: 'comprendre à l\'oreille', act: 'listen' }
+    { i: '🧠', t: 'Mes réponses', s: `${phrDoneCount()}/${PHRASES.length} par cœur`, act: 'memo', badge: phrDueCount() }
   ];
   $('homeQuick').innerHTML = quick.map(q => `<button class="q" data-act="start" data-preset="${q.act}">
       <span class="qi">${q.i}</span><span class="qt"><b>${q.t}</b><small>${q.s}</small></span>
@@ -2873,6 +3268,11 @@ function renderHome() {
 /* les axes à travailler en priorité, lus dans la progression réelle */
 function weakSpots() {
   const out = [], pct = k => Math.round(accOf(k) * 100);
+  const pd = phrDoneCount(), pdue = phrDueCount();
+  if (pd < 40)
+    out.push({ i: '🧠', t: 'Mémoriser mes réponses', s: `${pd}/${PHRASES.length} par cœur${pdue ? ` · ${pdue} à revoir aujourd'hui` : ''} — tu connais les mots, apprends les phrases entières`, act: 'memo' });
+  if (accN('pick') < 20 || accOf('pick') < .85)
+    out.push({ i: '🎯', t: 'Choisis la bonne réponse', s: accN('pick') ? `${pct('pick')} % — écoute la question, retrouve la phrase qui y répond` : 'Écoute la question, retrouve la phrase qui y répond', act: 'pick' });
   if (accN('answer') < 20 || accOf('answer') < .8)
     out.push({ i: '🪜', t: 'Répondre aux questions', s: 'Tu comprends mais tu bloques pour répondre : reprends le verbe de la question + un squelette', act: 'answer' });
   if (accN('build') < 10 || accOf('build') < .6)
@@ -2912,6 +3312,7 @@ function renderLearn() {
       <span class="mi" style="background:${m.bg}">${m.i}</span>
       <span class="mt"><b>${m.t}</b><small>${esc(m.s)}</small></span>
       ${m.pill ? `<span class="pill">${m.pill}</span>` : ''}<span class="mgo">›</span></button>`).join('');
+  renderMemoBox();
   renderDecks();
 }
 let deckSort = 'prog';
@@ -2952,6 +3353,86 @@ function openDeck(d) {
     <button class="btn ghost big" style="margin-top:12px" data-close>Fermer</button>`);
 }
 
+function renderMemoBox() {
+  const done = phrDoneCount(), seen = PHRASES.filter(p => phrSeen(p.id)).length, due = phrDueCount();
+  const rows = PHR_TOPICS.map(t => {
+    const ps = PHRASES.filter(p => p.topic === t);
+    const d = ps.filter(p => phrBox(p.id) >= PHR_DONE).length;
+    const avg = ps.reduce((a, p) => a + Math.min(phrBox(p.id), PHR_DONE), 0) / (ps.length * PHR_DONE);
+    return `<button class="deck" data-mtopic="${esc(t)}"><span class="dn">${esc(t)}</span>
+      ${ps.some(p => phrDue(p.id)) ? '<span class="tag warn">à revoir</span>' : ''}
+      <span class="dbar bar thin"><i style="width:${Math.round(avg * 100)}%"></i></span><span class="dp">${d}/${ps.length}</span></button>`;
+  }).join('');
+  $('memoBox').innerHTML = `<div class="card pad">
+      <div class="big-score"><b>${done}/${PHRASES.length}</b><span>réponses par cœur</span></div>
+      <p class="lead">${seen} commencées · ${due} à revoir aujourd'hui. Tu connais les mots ; ici tu apprends les <b>phrases entières</b> à sortir à l'examen.</p>
+      <button class="btn brand big" style="margin-top:12px" data-act="start" data-preset="memo">🧠 Mémoriser mes réponses</button>
+      <button class="btn soft big" style="margin-top:8px" data-act="start" data-preset="pick">🎯 Choisis la bonne réponse · 10 questions</button>
+    </div>
+    <div class="card" style="margin-top:10px">${rows}</div>`;
+  qsa('#memoBox [data-mtopic]').forEach(b => b.onclick = () => openMemoTopic(b.dataset.mtopic));
+}
+function openMemoTopic(t) {
+  const ps = PHRASES.filter(p => p.topic === t);
+  openSheet(`<h2 style="font-size:1.2rem">${esc(t)}</h2>
+    <p class="lead">Touche 🇫🇷 ou 🔤 pour comprendre chaque mot, 🐢 pour écouter lentement.</p>
+    <button class="btn brand big" style="margin:12px 0" data-act="start" data-preset="memo" data-arg="${esc(t)}" data-close>🧠 Mémoriser ce thème</button>
+    <div style="max-height:52vh;overflow:auto">${ps.map(p => {
+      const tg = target(p);
+      return `<div style="margin-bottom:14px">
+        <div style="display:flex;gap:8px;align-items:flex-start"><span class="lux" style="flex:1">${esc(p.q)}</span>
+          <span class="pbox${phrBox(p.id) >= PHR_DONE ? ' done' : ''}">${phrLabel(p.id)}</span></div>
+        <div class="r">${esc(p.qfr)}</div>
+        ${tg.mine ? '<div class="r" style="margin-top:6px">✍️ ta version perso :</div>' : ''}
+        ${phraseHtml(tg.lu, tg.fr)}</div>`;
+    }).join('')}</div>
+    <button class="btn ghost big" style="margin-top:8px" data-close>Fermer</button>`);
+}
+function memoMethod() {
+  openSheet(`<h2 style="font-size:1.2rem">🧠 Comment mémoriser une réponse</h2>
+    <p class="lead">Connaître les mots ne suffit pas : à l'examen, il faut sortir une phrase entière, tout de suite. Chaque réponse passe par 5 étapes, réparties sur plusieurs jours.</p>
+    <div class="note"><b>1. Écouter & comprendre</b> — la phrase, sa traduction, le mot à mot. Tu la répètes 3 fois à voix haute.</div>
+    <div class="note"><b>2. Choisir</b> — parmi 4 phrases, retrouve celle qui répond à la question.</div>
+    <div class="note"><b>3. Compléter</b> — des mots manquent : remets-les.</div>
+    <div class="note"><b>4. Construire</b> — remets toute la phrase dans l'ordre.</div>
+    <div class="note"><b>5. Dire de mémoire</b> — tu vois la question et le français, tu la dis sans la lire, puis tu compares.</div>
+    <p class="lead">Une étape réussie repousse la phrase de quelques jours (1, 2, 3, 6, 12 jours). Ratée, elle revient tout de suite, une étape plus facile. C'est ce rappel juste avant l'oubli qui grave la phrase.</p>
+    <div class="note">✍️ <b>Le plus efficace :</b> écris ta propre version dans <b>Parler → Entretien</b> (ton travail, ta vie). L'app te fera mémoriser <b>ta</b> phrase à la place du modèle. Le jour J, tu n'inventes rien : tu récites, puis tu ajoutes un détail.</div>
+    <div class="note">⏱️ <b>Rythme :</b> 3 nouvelles réponses par jour → toutes vues en 3 semaines, sues par cœur avant l'examen.</div>
+    <button class="btn brand big" style="margin-top:8px" data-act="start" data-preset="memo" data-close>🧠 Commencer</button>
+    <button class="btn ghost big" style="margin-top:8px" data-close>Fermer</button>`);
+}
+
+/* --- traduire : recherche hors ligne dans le vocabulaire et les phrases --- */
+const TR_WORDS = uniqBy(ALL_WORDS.map(w => [w[0], w[1]]).concat(Object.entries(GLOSS)), w => w[0].toLowerCase());
+function trSentences() {
+  return PHRASES.flatMap(p => {
+    const m = myVersion(p);
+    return [{ lu: p.q, fr: p.qfr, tag: p.topic }, { lu: p.a, fr: p.afr, tag: p.topic }].concat(m ? [{ lu: m.lu, fr: '', tag: '✍️ ma version' }] : []);
+  }).concat(CTX_EXTRA.map(([lu, fr]) => ({ lu, fr, tag: 'exemple' })));
+}
+function wireTr() {
+  const inp = $('trIn'), out = $('trOut');
+  let timer = null;
+  const run = () => {
+    const q = inp.value.trim(), n = norm(q);
+    $('trG1').href = gtUrl(q, 'fr', 'lb'); $('trG2').href = gtUrl(q, 'lb', 'fr');
+    if (n.length < 2) { out.innerHTML = '<div class="r">Tape au moins 2 lettres : « travail », « Aarbecht », « le soir », « gär »…</div>'; return; }
+    const hit = s => norm(s).includes(n);
+    const words = TR_WORDS.filter(([lu, fr]) => hit(lu) || hit(fr))
+      .sort((a, b) => (norm(a[0]) === n || norm(a[1]) === n ? -1 : 0) - (norm(b[0]) === n || norm(b[1]) === n ? -1 : 0)).slice(0, 12);
+    const sents = uniqBy(trSentences().filter(s => hit(s.lu) || hit(s.fr)), s => s.lu).slice(0, 10);
+    out.innerHTML = (words.length ? `<div class="card pad" style="margin-bottom:12px"><b style="font-size:.92rem">Mots</b>
+        ${words.map(([lu, fr]) => `<div class="wrow"><span class="wl">${esc(lu)}</span><span class="wt">${esc(fr)}</span>
+          <button class="btn sm soft" data-trsay="${esc(lu)}" aria-label="Écouter">🔊</button></div>`).join('')}</div>` : '')
+      + (sents.length ? `<b style="font-size:.92rem">Phrases d'examen</b>${sents.map(s => `<div class="r" style="margin-top:10px">${esc(s.tag)}</div>${phraseHtml(s.lu, s.fr, { fr: true })}`).join('')}` : '')
+      + (!words.length && !sents.length ? `<div class="note">Rien dans l'app pour « ${esc(q)} ». Essaie les boutons Google ci-dessus.</div>` : '');
+    qsa('#trOut [data-trsay]').forEach(b => b.onclick = () => speak(b.dataset.trsay));
+  };
+  inp.oninput = () => { clearTimeout(timer); timer = setTimeout(run, 160); };
+  run();
+}
+
 /* ----------------------------------------------------------------- PARLER */
 let speakPane = 'oral', oralTopic = ORAL_KEYS[0], curPhoto = 0;
 function setSpeak(p) {
@@ -2972,11 +3453,11 @@ function renderOral() {
   }).join('');
   qsa('#oralChips .chip').forEach(b => b.onclick = () => { oralTopic = b.dataset.t; renderOral(); });
 
-  $('oralList').innerHTML = ORAL[oralTopic].map((o, i) => {
+  $('oralList').innerHTML = `<button class="btn brand big" data-act="start" data-preset="memo" data-arg="${esc(oralTopic)}" style="margin-bottom:12px">🧠 Mémoriser les réponses de ce thème</button>` + ORAL[oralTopic].map((o, i) => {
     const k = oralTopic + '|' + i, st = S.oral[k] || {};
     return `<div class="qcard">
-      <div class="qq"><span>${st.done ? '✅' : '🎤'}</span><span><span class="lux">${esc(o.q)}</span>
-        <div class="qfr">${esc(o.fr)}</div></span></div>
+      <div class="qq"><span>${st.done ? '✅' : '🎤'}</span><span style="flex:1"><span class="lux">${esc(o.q)}</span>
+        <div class="qfr">${esc(o.fr)}</div></span><span class="pbox${phrBox(k) >= PHR_DONE ? ' done' : ''}">${phrLabel(k)}</span></div>
       <div class="row tight" style="margin-top:11px">
         <button class="btn sm soft" data-say="${esc(o.q)}">🔊 Question</button>
         ${canRecord() ? `<button class="btn sm soft" data-rec="${i}">⏺ M'enregistrer</button>` : ''}
@@ -2985,11 +3466,12 @@ function renderOral() {
       <details style="margin-top:10px"><summary>🧱 Squelette de réponse</summary><div class="dbody">${frameHtml(answerInfo(o.q))}</div></details>
       <div id="recBox${i}"></div>
       <div id="model${i}" hidden style="margin-top:10px">
-        <div class="answer"><span class="lux">${esc(o.a)}</span></div>
-        <button class="btn sm soft" data-say="${esc(o.a)}">🔊 Écouter le modèle</button>
+        ${phraseHtml(o.a, (ORAL_AFR[oralTopic] || [])[i] || '', { fr: true })}
       </div>
       <div class="r" style="margin:12px 0 4px">✍️ Ta version perso — c'est elle que tu diras le jour J :</div>
       <textarea data-note="${k}" placeholder="Adapte le modèle à TA vie : ton travail, ta famille, ta ville…">${esc(st.note || '')}</textarea>
+      <div class="row tight" style="margin-top:8px"><a class="btn sm soft" data-gtnote href="#" target="_blank" rel="noopener">🌐 Vérifier ma phrase (Google LU → FR)</a></div>
+      <div class="r" style="margin-top:6px">🧠 Ta version remplace le modèle dans « Mémoriser mes réponses ». Écris d'abord ta réponse, puis tes notes après une ligne vide.</div>
     </div>`;
   }).join('');
 
@@ -3003,6 +3485,11 @@ function renderOral() {
     const k = t.dataset.note; S.oral[k] = Object.assign({ done: true }, S.oral[k], { note: t.value }); save();
   });
   qsa('#oralList [data-rec]').forEach(b => b.onclick = () => oralRecord(b, +b.dataset.rec));
+  qsa('#oralList [data-gtnote]').forEach(a => a.onclick = e => {
+    const txt = (a.closest('.qcard').querySelector('textarea').value.trim().split(/\n\s*\n/)[0] || '').trim();
+    if (!txt) { e.preventDefault(); toast('✍️ Écris d\'abord ta phrase'); return; }
+    a.href = gtUrl(txt, 'lb', 'fr');
+  });
 }
 function markOral(i) {
   if (!/^\d+$/.test(String(i))) return;
@@ -3112,7 +3599,7 @@ function renderMock() {
       <div class="note">🗣️ Réponds à voix haute en phrase complète, <b>puis</b> révèle le modèle.</div>
       <details><summary>🧱 Bloqué·e ? Le squelette</summary><div class="dbody">${frameHtml(answerInfo(o.q))}</div></details>
       <details><summary>Voir la réponse modèle</summary><div class="dbody">
-        <div class="answer"><span class="lux">${esc(o.a)}</span></div><div class="r">${esc(o.fr)}</div></div></details>
+        ${phraseHtml(o.a, (ORAL_AFR[MK.topic] || [])[MK.step] || '', { fr: true })}</div></details>
       <button class="btn primary big" id="mkNext">${MK.step + 1 < MK.qs.length ? 'Question suivante ›' : 'Passer à la photo ›'}</button>
     </div>`;
     speak(o.q);
@@ -3175,7 +3662,7 @@ function setRef(p) {
   refPane = p;
   qsa('#refSeg button').forEach(b => b.classList.toggle('active', b.dataset.rf === p));
   $('rfQtypes').hidden = p !== 'qtypes'; $('rfGram').hidden = p !== 'gram';
-  $('rfConj').hidden = p !== 'conj'; $('rfPic').hidden = p !== 'pic';
+  $('rfConj').hidden = p !== 'conj'; $('rfPic').hidden = p !== 'pic'; $('rfTr').hidden = p !== 'tr';
 }
 function renderRef() {
   if (refBuilt) return;
@@ -3194,6 +3681,7 @@ function renderRef() {
       <button class="btn sm soft" style="margin-top:10px" data-say="${esc(c[1].join(', '))}">🔊 Écouter</button></div></details>`).join('');
   $('pictureList').innerHTML = PICTURE.map((p, i) => `<details${i === 0 ? ' open' : ''}><summary>${p.t}</summary><div class="dbody">${p.html}</div></details>`).join('');
   qsa('#v-ref [data-say]').forEach(b => b.onclick = () => speak(b.dataset.say));
+  wireTr();
 }
 
 /* ----------------------------------------------------------------- PROGRÈS */
@@ -3357,6 +3845,7 @@ document.addEventListener('click', e => {
   else if (act === 'plan-start') { S.plan.start = TODAY; save(); renderHome(); toast('📅 Plan démarré — jour 1 !'); }
   else if (act === 'plan-restart') { S.plan.start = TODAY; S.plan.done = {}; save(); renderHome(); }
   else if (act === 'plan-info') planInfo();
+  else if (act === 'memo-method') memoMethod();
   else if (act === 'open-streak') streakInfo();
   else if (act === 'open-level') levelSheet();
   else if (act === 'hard-reset') { try { localStorage.removeItem(KEY); } catch (e) { } S = DEFAULT_STATE(); saveNow(); closeSheet(); refBuilt = false; renderCurrentView(); onboarding(); }
